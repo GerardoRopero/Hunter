@@ -1,0 +1,42 @@
+# matematicas.hxh
+# Prueba de sqrt, abs, exp, log, log2, log10, logb
+
+print("=== RAÍZ CUADRADA ===")
+print("sqrt(4)   =", sqrt(4))
+print("sqrt(9)   =", sqrt(9))
+print("sqrt(2)   =", sqrt(2))
+print("sqrt(144) =", sqrt(144))
+
+print("=== VALOR ABSOLUTO ===")
+print("abs(-5)   =", abs(-5))
+print("abs(5)    =", abs(5))
+print("abs(-3.7) =", abs(-3.7))
+
+print("=== EXPONENCIAL ===")
+print("exp(0) =", exp(0))
+print("exp(1) =", exp(1))
+print("exp(2) =", exp(2))
+
+print("=== LOGARITMO NATURAL ===")
+print("log(1)  =", log(1))
+print("log(E)  =", log(E))
+print("log(10) =", log(10))
+
+print("=== LOGARITMO BASE 2 ===")
+print("log2(2)  =", log2(2))
+print("log2(8)  =", log2(8))
+print("log2(32) =", log2(32))
+
+print("=== LOGARITMO BASE 10 ===")
+print("log10(10)   =", log10(10))
+print("log10(100)  =", log10(100))
+print("log10(1000) =", log10(1000))
+
+print("=== LOGARITMO BASE ARBITRARIA ===")
+print("logb(8, 2)   =", logb(8, 2))
+print("logb(27, 3)  =", logb(27, 3))
+print("logb(100, 10)=", logb(100, 10))
+
+print("=== IDENTIDADES ===")
+print("exp(log(5)) =", exp(log(5)))
+print("sqrt(x)**2 =", sqrt(7) * sqrt(7))

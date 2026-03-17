@@ -1,0 +1,28 @@
+# trigonometria.hxh
+# Prueba de funciones trigonométricas implementadas desde cero
+
+# 30 grados en radianes = PI / 6
+angulo30 = PI / 6
+# 45 grados en radianes = PI / 4
+angulo45 = PI / 4
+# 90 grados en radianes = PI / 2
+angulo90 = PI / 2
+
+print("=== SENO ===")
+print("sin(30°) =", sin(angulo30))
+print("sin(45°) =", sin(angulo45))
+print("sin(90°) =", sin(angulo90))
+
+print("=== COSENO ===")
+print("cos(30°) =", cos(angulo30))
+print("cos(45°) =", cos(angulo45))
+print("cos(90°) =", cos(angulo90))
+
+print("=== TANGENTE ===")
+print("tan(30°) =", tan(angulo30))
+print("tan(45°) =", tan(angulo45))
+
+print("=== IDENTIDAD sin²+cos²=1 ===")
+x = PI / 7
+resultado = sin(x) * sin(x) + cos(x) * cos(x)
+print("sin²(x) + cos²(x) =", resultado)

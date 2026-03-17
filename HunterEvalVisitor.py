@@ -7,7 +7,12 @@ directamente, sin generar código Python intermedio.
 
 from HunterParser  import HunterParser
 from HunterVisitor import HunterVisitor
-from Environment   import Environment, HunterFunction, ReturnException
+from Environment   import (Environment, HunterFunction, ReturnException,
+                            hunter_sin, hunter_cos, hunter_tan,
+                            hunter_sqrt, hunter_abs,
+                            hunter_exp,
+                            hunter_log, hunter_log2, hunter_log10, hunter_logb,
+                            PI, E)
 
 
 class HunterEvalVisitor(HunterVisitor):
@@ -15,11 +20,32 @@ class HunterEvalVisitor(HunterVisitor):
     def __init__(self):
         self._global_env = Environment()
         self._env        = self._global_env
+        self._registrar_builtins()
+
+    # ── Builtins ───────────────────────────────────────────────────────────
+    def _registrar_builtins(self):
+        """Registra funciones y constantes nativas del lenguaje Hunter."""
+        # Trigonométricas
+        self._env.set("sin",   hunter_sin)
+        self._env.set("cos",   hunter_cos)
+        self._env.set("tan",   hunter_tan)
+        # Raíz y absoluto
+        self._env.set("sqrt",  hunter_sqrt)
+        self._env.set("abs",   hunter_abs)
+        # Exponencial
+        self._env.set("exp",   hunter_exp)
+        # Logaritmos
+        self._env.set("log",   hunter_log)
+        self._env.set("log2",  hunter_log2)
+        self._env.set("log10", hunter_log10)
+        self._env.set("logb",  hunter_logb)
+        # Constantes
+        self._env.set("PI",    PI)
+        self._env.set("E",     E)
 
     # ── Utilidad de entorno ────────────────────────────────────────────────
-    def _push(self) -> Environment:
+    def _push(self):
         self._env = self._env.child()
-        return self._env
 
     def _pop(self):
         self._env = self._env._parent
@@ -75,11 +101,9 @@ class HunterEvalVisitor(HunterVisitor):
     def visitIfStmt(self, ctx: HunterParser.IfStmtContext):
         if self.visit(ctx.expr()):
             return self._exec_block(ctx.block())
-
         for elif_clause in ctx.elifClause():
             if self.visit(elif_clause.expr()):
                 return self._exec_block(elif_clause.block())
-
         if ctx.elseClause():
             return self._exec_block(ctx.elseClause().block())
 
@@ -142,7 +166,6 @@ class HunterEvalVisitor(HunterVisitor):
 
     # ── Block helpers ──────────────────────────────────────────────────────
     def _exec_block(self, ctx: HunterParser.BlockContext):
-        """Ejecuta un bloque en un scope nuevo."""
         self._push()
         try:
             self._exec_block_raw(ctx)
@@ -150,7 +173,6 @@ class HunterEvalVisitor(HunterVisitor):
             self._pop()
 
     def _exec_block_raw(self, ctx: HunterParser.BlockContext):
-        """Ejecuta un bloque sin crear un scope nuevo (for lo gestiona)."""
         for stmt in ctx.statement():
             self.visit(stmt)
 
@@ -183,7 +205,7 @@ class HunterEvalVisitor(HunterVisitor):
         ops       = [c.getText() for c in children if not hasattr(c, "getRuleIndex")]
         result    = self.visit(add_exprs[0])
         for op, rhs_ctx in zip(ops, add_exprs[1:]):
-            rhs = self.visit(rhs_ctx)
+            rhs    = self.visit(rhs_ctx)
             result = self._compare(result, op, rhs)
         return result
 
@@ -245,7 +267,6 @@ class HunterEvalVisitor(HunterVisitor):
 
     def visitStringLit(self, ctx: HunterParser.StringLitContext):
         raw = ctx.STRING_LIT().getText()
-        # quitar comillas y procesar escapes
         return raw[1:-1].encode().decode("unicode_escape")
 
     def visitBoolLit(self, ctx: HunterParser.BoolLitContext):
@@ -285,7 +306,7 @@ class HunterEvalVisitor(HunterVisitor):
 
         func = self._env.get(name)
 
-        # función nativa de Python (e.g. print registrada como builtin)
+        # Función nativa (sin, cos, sqrt, log, etc.)
         if callable(func) and not isinstance(func, HunterFunction):
             return func(*args)
 
@@ -298,7 +319,6 @@ class HunterEvalVisitor(HunterVisitor):
                 f"recibió {len(args)}"
             )
 
-        # Crear scope de la función sobre su closure
         call_env  = func.closure.child()
         saved_env = self._env
         self._env = call_env
