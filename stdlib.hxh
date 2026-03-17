@@ -1,0 +1,115 @@
+# ─────────────────────────────────────────────
+#  stdlib.hxh
+#  Librería estándar del lenguaje Hunter.
+#  Escrita completamente en Hunter.
+#  Se carga automáticamente al arrancar el intérprete.
+# ─────────────────────────────────────────────
+
+# ── Constantes ────────────────────────────────
+PI = 3.14159265358979323846
+E  = 2.71828182845904523536
+
+# ── Valor absoluto ────────────────────────────
+def abs(x):
+    if x < 0:
+        return x * -1
+    return x
+
+# ── Factorial ─────────────────────────────────
+def factorial(n):
+    resultado = 1
+    i = 2
+    while i <= n:
+        resultado *= i
+        i += 1
+    return resultado
+
+# ── Normalizar ángulo a [-PI, PI] ─────────────
+def normalizar(x):
+    dos_pi = 2 * PI
+    x = x % dos_pi
+    if x > PI:
+        x = x - dos_pi
+    return x
+
+# ── Seno (Serie de Taylor, 20 términos) ───────
+def sin(x):
+    x         = normalizar(x)
+    resultado = 0
+    n         = 0
+    while n < 20:
+        exponente = 2 * n + 1
+        signo     = (-1) ** n
+        resultado = resultado + signo * (x ** exponente) / factorial(exponente)
+        n += 1
+    return resultado
+
+# ── Coseno (Serie de Taylor, 20 términos) ─────
+def cos(x):
+    x         = normalizar(x)
+    resultado = 0
+    n         = 0
+    while n < 20:
+        exponente = 2 * n
+        signo     = (-1) ** n
+        resultado = resultado + signo * (x ** exponente) / factorial(exponente)
+        n += 1
+    return resultado
+
+# ── Tangente ──────────────────────────────────
+def tan(x):
+    return sin(x) / cos(x)
+
+# ── Raíz cuadrada (Newton-Raphson) ────────────
+def sqrt(x):
+    if x == 0:
+        return 0
+    estimado = x / 2
+    i = 0
+    while i < 50:
+        estimado = (estimado + x / estimado) / 2
+        i += 1
+    return estimado
+
+# ── Exponencial e^x (Serie de Taylor) ─────────
+def exp(x):
+    resultado = 0
+    n         = 0
+    while n < 50:
+        resultado = resultado + (x ** n) / factorial(n)
+        n += 1
+    return resultado
+
+# ── Logaritmo natural ln(x) ───────────────────
+def log(x):
+    # Reducción de rango: ln(x) = ln(x / e^k) + k
+    k = 0
+    while x > 2:
+        x = x / E
+        k += 1
+    while x < 0.5:
+        x = x * E
+        k -= 1
+    # Serie: ln(x) = 2 * arctanh((x-1)/(x+1))
+    y         = (x - 1) / (x + 1)
+    y2        = y * y
+    resultado = 0
+    termino   = y
+    n         = 0
+    while n < 1000:
+        resultado = resultado + termino / (2 * n + 1)
+        termino   = termino * y2
+        n += 1
+    return 2 * resultado + k
+
+# ── Logaritmo base 2 ──────────────────────────
+def log2(x):
+    return log(x) / log(2)
+
+# ── Logaritmo base 10 ─────────────────────────
+def log10(x):
+    return log(x) / log(10)
+
+# ── Logaritmo base arbitraria ─────────────────
+def logb(x, base):
+    return log(x) / log(base)

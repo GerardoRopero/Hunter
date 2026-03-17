@@ -2,17 +2,16 @@
 HunterEvalVisitor.py
 ~~~~~~~~~~~~~~~~~~~~
 Visitor que recorre el árbol sintáctico de Hunter y ejecuta cada nodo
-directamente, sin generar código Python intermedio.
+directamente. Las funciones matemáticas están en stdlib.hxh, escrita
+en Hunter puro, y se cargan automáticamente al arrancar.
 """
+
+import os
+from antlr4 import CommonTokenStream, InputStream
 
 from HunterParser  import HunterParser
 from HunterVisitor import HunterVisitor
-from Environment   import (Environment, HunterFunction, ReturnException,
-                            hunter_sin, hunter_cos, hunter_tan,
-                            hunter_sqrt, hunter_abs,
-                            hunter_exp,
-                            hunter_log, hunter_log2, hunter_log10, hunter_logb,
-                            PI, E)
+from Environment   import Environment, HunterFunction, ReturnException
 
 
 class HunterEvalVisitor(HunterVisitor):
@@ -20,28 +19,33 @@ class HunterEvalVisitor(HunterVisitor):
     def __init__(self):
         self._global_env = Environment()
         self._env        = self._global_env
-        self._registrar_builtins()
+        self._cargar_stdlib()
 
-    # ── Builtins ───────────────────────────────────────────────────────────
-    def _registrar_builtins(self):
-        """Registra funciones y constantes nativas del lenguaje Hunter."""
-        # Trigonométricas
-        self._env.set("sin",   hunter_sin)
-        self._env.set("cos",   hunter_cos)
-        self._env.set("tan",   hunter_tan)
-        # Raíz y absoluto
-        self._env.set("sqrt",  hunter_sqrt)
-        self._env.set("abs",   hunter_abs)
-        # Exponencial
-        self._env.set("exp",   hunter_exp)
-        # Logaritmos
-        self._env.set("log",   hunter_log)
-        self._env.set("log2",  hunter_log2)
-        self._env.set("log10", hunter_log10)
-        self._env.set("logb",  hunter_logb)
-        # Constantes
-        self._env.set("PI",    PI)
-        self._env.set("E",     E)
+    # ── Carga de la librería estándar ──────────────────────────────────────
+    def _cargar_stdlib(self):
+        """
+        Carga stdlib.hxh antes de ejecutar cualquier programa.
+        La busca en el mismo directorio que este archivo.
+        """
+        ruta = os.path.join(os.path.dirname(__file__), "stdlib.hxh")
+
+        if not os.path.isfile(ruta):
+            raise FileNotFoundError(
+                f"No se encontró la librería estándar en: {ruta}"
+            )
+
+        with open(ruta, encoding="utf-8") as fh:
+            source = fh.read()
+
+        # Importar aquí para evitar importación circular
+        from IndentLexer import IndentLexer
+
+        tokens = CommonTokenStream(IndentLexer(InputStream(source)))
+        parser = HunterParser(tokens)
+        tree   = parser.program()
+
+        # Ejecutar en el entorno global para que todo quede disponible
+        self.visit(tree)
 
     # ── Utilidad de entorno ────────────────────────────────────────────────
     def _push(self):
@@ -306,7 +310,6 @@ class HunterEvalVisitor(HunterVisitor):
 
         func = self._env.get(name)
 
-        # Función nativa (sin, cos, sqrt, log, etc.)
         if callable(func) and not isinstance(func, HunterFunction):
             return func(*args)
 
