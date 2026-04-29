@@ -1,0 +1,13 @@
+# geometria.hxh
+
+def area_circulo(radio):
+    return PI * radio * radio
+
+def area_rectangulo(base, altura):
+    return base * altura
+
+def area_triangulo(base, altura):
+    return base * altura / 2
+
+def hipotenusa(a, b):
+    return sqrt(a * a + b * b)

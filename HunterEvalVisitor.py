@@ -124,6 +124,29 @@ class HunterEvalVisitor(HunterVisitor):
         lst   = self._env.get(name)
         lst[fila][col] = value
 
+    # ── Import ──────────────────────────────────────────────────────────────
+    def visitImportStmt(self, ctx: HunterParser.ImportStmtContext):
+        nombre = ctx.ID().getText()       # "matematica"
+        ruta   = f"{nombre}.hxh"         # "matematica.hxh"
+    
+        if not os.path.isfile(ruta):
+            raise ImportError(f"Librería '{nombre}' no encontrada ({ruta})")
+    
+        with open(ruta, encoding="utf-8") as fh:
+            source = fh.read()
+    
+        from IndentLexer import IndentLexer
+        tokens = CommonTokenStream(IndentLexer(InputStream(source)))
+        parser = HunterParser(tokens)
+        tree   = parser.program()
+    
+        # Ejecutar en el entorno global para que
+        # sus funciones queden disponibles
+        saved_env    = self._env
+        self._env    = self._global_env
+        self.visit(tree)
+        self._env    = saved_env
+    
     # ── Print ──────────────────────────────────────────────────────────────
     def visitPrintStmt(self, ctx: HunterParser.PrintStmtContext):
         args = []

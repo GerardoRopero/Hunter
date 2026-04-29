@@ -7,6 +7,7 @@ program
 statement
     : assignStmt         NEWLINE
     | printStmt          NEWLINE
+    | importStmt         NEWLINE
     | ifStmt
     | whileStmt
     | forStmt
@@ -27,6 +28,11 @@ assignStmt
     | ID LBRACKET expr RBRACKET LBRACKET expr RBRACKET ASSIGN expr           # IndexAssign2D
     ;
 
+// ── Import ────────────────────────────────────
+importStmt
+    : IMPORT ID
+    ;
+    
 // ── Print ────────────────────────────────────
 printStmt
     : PRINT LPAREN exprList? RPAREN
@@ -164,6 +170,7 @@ IN          : 'in'    ;
 DEF         : 'def'   ;
 RETURN      : 'return';
 PRINT       : 'print' ;
+IMPORT      : 'import';
 RANGE       : 'range' ;
 AND         : 'and'   ;
 OR          : 'or'    ;

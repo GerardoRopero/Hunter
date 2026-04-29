@@ -1,0 +1,5 @@
+# programa.hxh
+import geometria
+
+print(area_circulo(5))
+print(hipotenusa(3, 4))

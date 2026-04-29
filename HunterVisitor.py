@@ -54,6 +54,11 @@ class HunterVisitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
 
+    # Visit a parse tree produced by HunterParser#importStmt.
+    def visitImportStmt(self, ctx:HunterParser.ImportStmtContext):
+        return self.visitChildren(ctx)
+
+
     # Visit a parse tree produced by HunterParser#printStmt.
     def visitPrintStmt(self, ctx:HunterParser.PrintStmtContext):
         return self.visitChildren(ctx)
