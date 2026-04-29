@@ -1,0 +1,33 @@
+# prueba_regresion.hxh
+
+# Regresion Lineal
+# Datos: horas estudiadas vs nota obtenida
+print("=== REGRESION LINEAL ===")
+
+horas  = [1, 2, 3, 4, 5, 6, 7, 8]
+notas  = [40, 50, 55, 65, 70, 75, 85, 90]
+
+modelo = regresion_lineal(horas, notas)
+
+print("Pendiente (m):", modelo[0])
+print("Intercepto (b):", modelo[1])
+print("R2:", rl_r2(horas, notas, modelo))
+print("Prediccion para 5 horas:", rl_predecir(modelo, 5))
+print("Prediccion para 9 horas:", rl_predecir(modelo, 9))
+print("Prediccion para 10 horas:", rl_predecir(modelo, 10))
+
+# Regresion Logistica
+# Datos: horas de estudio vs aprobo (1) o no (0)
+print("=== REGRESION LOGISTICA ===")
+
+x_train = [1, 2, 3, 4, 5, 6, 7, 8]
+y_train = [0, 0, 0, 0, 1, 1, 1, 1]
+
+modelo_log = regresion_logistica(x_train, y_train, 0.1, 1000)
+
+print("w0:", modelo_log[0])
+print("w1:", modelo_log[1])
+print("Precision:", rlog_precision(modelo_log, x_train, y_train))
+print("Aprueba con 3 horas?", rlog_predecir(modelo_log, 3))
+print("Aprueba con 6 horas?", rlog_predecir(modelo_log, 6))
+print("Probabilidad con 5 horas:", rlog_probabilidad(modelo_log, 5))

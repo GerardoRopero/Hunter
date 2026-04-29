@@ -36,12 +36,31 @@ class HunterEvalVisitor(HunterVisitor):
 
     def _registrar_builtins_sistema(self):
         from Environment import (hunter_abrir, hunter_escribir,
-                                  hunter_agregar, hunter_existe, hunter_lineas)
-        self._env.set("abrir",    hunter_abrir)
-        self._env.set("escribir", hunter_escribir)
-        self._env.set("agregar",  hunter_agregar)
-        self._env.set("existe",   hunter_existe)
-        self._env.set("lineas",   hunter_lineas)
+                                  hunter_agregar, hunter_existe, hunter_lineas,
+                                  hunter_grafica_guardar,
+                                  hunter_grafica_puntos_guardar,
+                                  hunter_grafica_barras_guardar,
+                                  hunter_grafica_histograma_guardar,
+                                  hunter_grafica_dos_lineas_guardar,
+                                  hunter_leer_csv,
+                                  hunter_csv_columna,
+                                  hunter_leer_csv_encabezados)
+        # Archivos
+        self._env.set("abrir",                      hunter_abrir)
+        self._env.set("escribir",                   hunter_escribir)
+        self._env.set("agregar",                    hunter_agregar)
+        self._env.set("existe",                     hunter_existe)
+        self._env.set("lineas",                     hunter_lineas)
+        # Graficacion
+        self._env.set("grafica_guardar",            hunter_grafica_guardar)
+        self._env.set("grafica_puntos_guardar",     hunter_grafica_puntos_guardar)
+        self._env.set("grafica_barras_guardar",     hunter_grafica_barras_guardar)
+        self._env.set("grafica_histograma_guardar", hunter_grafica_histograma_guardar)
+        self._env.set("grafica_dos_lineas_guardar", hunter_grafica_dos_lineas_guardar)
+        # CSV
+        self._env.set("leer_csv",                   hunter_leer_csv)
+        self._env.set("csv_columna",                hunter_csv_columna)
+        self._env.set("csv_encabezados",            hunter_leer_csv_encabezados)
 
     # ── Utilidad de entorno ────────────────────────────────────────────────
     def _push(self):

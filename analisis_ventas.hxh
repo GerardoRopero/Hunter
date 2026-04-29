@@ -1,0 +1,84 @@
+# analisis_ventas.hxh
+# Lee ventas.csv y genera graficas de los datos
+
+# ── Leer el archivo CSV ───────────────────────
+datos = leer_csv("ventas.csv")
+encabezados = csv_encabezados("ventas.csv")
+
+print("Encabezados:", encabezados)
+print("Total de filas:", vec_len(datos))
+
+# ── Extraer columnas ──────────────────────────
+meses    = csv_columna(datos, 0)
+ventas   = csv_columna(datos, 1)
+gastos   = csv_columna(datos, 2)
+ganancias = csv_columna(datos, 3)
+
+# ── Estadísticas básicas ──────────────────────
+print("=== ESTADISTICAS ===")
+print("Ventas totales:   ", vec_suma(ventas))
+print("Gastos totales:   ", vec_suma(gastos))
+print("Ganancia total:   ", vec_suma(ganancias))
+print("Venta promedio:   ", vec_media(ventas))
+print("Ganancia promedio:", vec_media(ganancias))
+
+# ── Mejor y peor mes ──────────────────────────
+mejor_venta = ventas[0]
+peor_venta  = ventas[0]
+mejor_mes   = 1
+peor_mes    = 1
+
+vidx = 0
+while vidx < vec_len(ventas):
+    if ventas[vidx] > mejor_venta:
+        mejor_venta = ventas[vidx]
+        mejor_mes   = meses[vidx]
+    if ventas[vidx] < peor_venta:
+        peor_venta = ventas[vidx]
+        peor_mes   = meses[vidx]
+    vidx += 1
+
+print("Mejor mes:  ", mejor_mes, "con ventas de", mejor_venta)
+print("Peor mes:   ", peor_mes,  "con ventas de", peor_venta)
+
+# ── Grafica 1: Ventas por mes (linea) ─────────
+grafica_guardar(meses, ventas, "g1_ventas.png", "Ventas por mes", "Mes", "Ventas")
+
+# ── Grafica 2: Gastos por mes (linea) ─────────
+grafica_guardar(meses, gastos, "g2_gastos.png", "Gastos por mes", "Mes", "Gastos")
+
+# ── Grafica 3: Ventas vs Gastos (dos lineas) ──
+grafica_dos_lineas_guardar(meses, ventas, gastos, "Ventas", "Gastos", "g3_ventas_vs_gastos.png", "Ventas vs Gastos", "Mes", "Valor")
+
+# ── Grafica 4: Ganancias (barras) ─────────────
+grafica_barras_guardar(meses, ganancias, "g4_ganancias.png", "Ganancia por mes", "Mes", "Ganancia")
+
+# ── Grafica 5: Scatter ventas vs ganancias ────
+grafica_puntos_guardar(ventas, ganancias, "g5_scatter.png", "Ventas vs Ganancias", "Ventas", "Ganancias")
+
+# ── Grafica 6: Histograma de ventas ───────────
+grafica_histograma_guardar(ventas, 5, "g6_histograma.png", "Distribucion de ventas", "Rango", "Frecuencia")
+
+# ── Regresion lineal sobre ventas ─────────────
+print("=== REGRESION LINEAL ===")
+modelo_ventas = regresion_lineal(meses, ventas)
+print("Pendiente:", modelo_ventas[0])
+print("Intercepto:", modelo_ventas[1])
+print("R2:", rl_r2(meses, ventas, modelo_ventas))
+
+predichos = []
+pidx = 0
+while pidx < vec_len(meses):
+    predichos = predichos + [rl_predecir(modelo_ventas, meses[pidx])]
+    pidx += 1
+
+grafica_dos_lineas_guardar(meses, ventas, predichos, "Ventas reales", "Tendencia", "g7_tendencia.png", "Tendencia de ventas", "Mes", "Ventas")
+
+print("=== GRAFICAS GENERADAS ===")
+print("g1_ventas.png")
+print("g2_gastos.png")
+print("g3_ventas_vs_gastos.png")
+print("g4_ganancias.png")
+print("g5_scatter.png")
+print("g6_histograma.png")
+print("g7_tendencia.png")

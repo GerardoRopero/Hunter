@@ -1,0 +1,24 @@
+# prueba_matrices.hxh
+
+# ── Definir matrices ──────────────────────────
+a = [[1, 2], [3, 4]]
+b = [[5, 6], [7, 8]]
+
+print("=== SUMA ===")
+mat_print(mat_suma(a, b))
+
+print("=== RESTA ===")
+mat_print(mat_resta(a, b))
+
+print("=== MULTIPLICACIÓN ===")
+mat_print(mat_mul(a, b))
+
+print("=== TRANSPUESTA ===")
+mat_print(mat_transpuesta(a))
+
+print("=== INVERSA ===")
+mat_print(mat_inversa(a))
+
+# Verificar: A * A^-1 debe dar la identidad
+print("=== A * A^-1 (debe ser identidad) ===")
+mat_print(mat_mul(a, mat_inversa(a)))

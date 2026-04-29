@@ -1,0 +1,39 @@
+# prueba_graficas.hxh
+
+# Grafica de linea simple
+xs = [1, 2, 3, 4, 5, 6, 7, 8]
+ys = [2, 4, 5, 7, 6, 8, 9, 10]
+
+grafica_guardar(xs, ys, "linea.png", "Ventas mensuales", "Mes", "Ventas")
+
+# Grafica de puntos (scatter)
+edades   = [22, 25, 27, 30, 35, 40, 45, 50]
+salarios = [20000, 25000, 28000, 35000, 45000, 55000, 60000, 65000]
+
+grafica_puntos_guardar(edades, salarios, "scatter.png", "Edad vs Salario", "Edad", "Salario")
+
+# Grafica de barras
+meses  = ["Ene", "Feb", "Mar", "Abr", "May"]
+ventas = [150, 200, 180, 220, 190]
+
+grafica_barras_guardar(meses, ventas, "barras.png", "Ventas por mes", "Mes", "Unidades")
+
+# Histograma
+datos = [1, 2, 2, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 6, 6, 7]
+
+grafica_histograma_guardar(datos, 6, "histograma.png", "Distribucion", "Valor", "Frecuencia")
+
+# Dos lineas: datos reales vs regresion lineal
+horas = [1, 2, 3, 4, 5, 6, 7, 8]
+notas = [40, 50, 55, 65, 70, 75, 85, 90]
+
+modelo    = regresion_lineal(horas, notas)
+predichos = []
+pidx      = 0
+while pidx < 8:
+    predichos = predichos + [rl_predecir(modelo, horas[pidx])]
+    pidx += 1
+
+grafica_dos_lineas_guardar(horas, notas, predichos, "Reales", "Regresion", "comparacion.png", "Notas vs Horas", "Horas", "Nota")
+
+print("Todas las graficas guardadas")
