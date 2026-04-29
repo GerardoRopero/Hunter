@@ -44,6 +44,16 @@ class HunterVisitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
 
+    # Visit a parse tree produced by HunterParser#IndexAssign.
+    def visitIndexAssign(self, ctx:HunterParser.IndexAssignContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by HunterParser#IndexAssign2D.
+    def visitIndexAssign2D(self, ctx:HunterParser.IndexAssign2DContext):
+        return self.visitChildren(ctx)
+
+
     # Visit a parse tree produced by HunterParser#printStmt.
     def visitPrintStmt(self, ctx:HunterParser.PrintStmtContext):
         return self.visitChildren(ctx)
@@ -69,28 +79,8 @@ class HunterVisitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
 
-    # Visit a parse tree produced by HunterParser#ForRange.
-    def visitForRange(self, ctx:HunterParser.ForRangeContext):
-        return self.visitChildren(ctx)
-
-
-    # Visit a parse tree produced by HunterParser#ForIter.
-    def visitForIter(self, ctx:HunterParser.ForIterContext):
-        return self.visitChildren(ctx)
-
-
-    # Visit a parse tree produced by HunterParser#RangeOne.
-    def visitRangeOne(self, ctx:HunterParser.RangeOneContext):
-        return self.visitChildren(ctx)
-
-
-    # Visit a parse tree produced by HunterParser#RangeTwo.
-    def visitRangeTwo(self, ctx:HunterParser.RangeTwoContext):
-        return self.visitChildren(ctx)
-
-
-    # Visit a parse tree produced by HunterParser#RangeThree.
-    def visitRangeThree(self, ctx:HunterParser.RangeThreeContext):
+    # Visit a parse tree produced by HunterParser#forStmt.
+    def visitForStmt(self, ctx:HunterParser.ForStmtContext):
         return self.visitChildren(ctx)
 
 
@@ -204,8 +194,28 @@ class HunterVisitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
 
+    # Visit a parse tree produced by HunterParser#RangeOne.
+    def visitRangeOne(self, ctx:HunterParser.RangeOneContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by HunterParser#RangeTwo.
+    def visitRangeTwo(self, ctx:HunterParser.RangeTwoContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by HunterParser#RangeThree.
+    def visitRangeThree(self, ctx:HunterParser.RangeThreeContext):
+        return self.visitChildren(ctx)
+
+
     # Visit a parse tree produced by HunterParser#FuncCall.
     def visitFuncCall(self, ctx:HunterParser.FuncCallContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by HunterParser#IndexAccess2D.
+    def visitIndexAccess2D(self, ctx:HunterParser.IndexAccess2DContext):
         return self.visitChildren(ctx)
 
 

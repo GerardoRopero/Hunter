@@ -1,8 +1,7 @@
 # ─────────────────────────────────────────────
 #  stdlib.hxh
 #  Librería estándar del lenguaje Hunter.
-#  Escrita completamente en Hunter.
-#  Se carga automáticamente al arrancar el intérprete.
+#  Escrita completamente en Hunter puro.
 # ─────────────────────────────────────────────
 
 # ── Constantes ────────────────────────────────
@@ -10,106 +9,369 @@ PI = 3.14159265358979323846
 E  = 2.71828182845904523536
 
 # ── Valor absoluto ────────────────────────────
-def abs(x):
-    if x < 0:
-        return x * -1
-    return x
+def abs(xabs):
+    if xabs < 0:
+        return xabs * -1
+    return xabs
 
 # ── Factorial ─────────────────────────────────
-def factorial(n):
-    resultado = 1
-    i = 2
-    while i <= n:
-        resultado *= i
-        i += 1
-    return resultado
+def factorial(nfact):
+    resfact = 1
+    ifact   = 2
+    while ifact <= nfact:
+        resfact *= ifact
+        ifact   += 1
+    return resfact
 
 # ── Normalizar ángulo a [-PI, PI] ─────────────
-def normalizar(x):
+def normalizar(xnorm):
     dos_pi = 2 * PI
-    x = x % dos_pi
-    if x > PI:
-        x = x - dos_pi
-    return x
+    xnorm  = xnorm % dos_pi
+    if xnorm > PI:
+        xnorm = xnorm - dos_pi
+    return xnorm
 
-# ── Seno (Serie de Taylor, 20 términos) ───────
-def sin(x):
-    x         = normalizar(x)
-    resultado = 0
-    n         = 0
-    while n < 20:
-        exponente = 2 * n + 1
-        signo     = (-1) ** n
-        resultado = resultado + signo * (x ** exponente) / factorial(exponente)
-        n += 1
-    return resultado
+# ── Seno ──────────────────────────────────────
+def sin(xsin):
+    xsin    = normalizar(xsin)
+    ressin  = 0
+    nsin    = 0
+    while nsin < 20:
+        expsin  = 2 * nsin + 1
+        sigsin  = (-1) ** nsin
+        ressin  = ressin + sigsin * (xsin ** expsin) / factorial(expsin)
+        nsin   += 1
+    return ressin
 
-# ── Coseno (Serie de Taylor, 20 términos) ─────
-def cos(x):
-    x         = normalizar(x)
-    resultado = 0
-    n         = 0
-    while n < 20:
-        exponente = 2 * n
-        signo     = (-1) ** n
-        resultado = resultado + signo * (x ** exponente) / factorial(exponente)
-        n += 1
-    return resultado
+# ── Coseno ────────────────────────────────────
+def cos(xcos):
+    xcos    = normalizar(xcos)
+    rescos  = 0
+    ncos    = 0
+    while ncos < 20:
+        expcos  = 2 * ncos
+        sigcos  = (-1) ** ncos
+        rescos  = rescos + sigcos * (xcos ** expcos) / factorial(expcos)
+        ncos   += 1
+    return rescos
 
 # ── Tangente ──────────────────────────────────
-def tan(x):
-    return sin(x) / cos(x)
+def tan(xtan):
+    return sin(xtan) / cos(xtan)
 
-# ── Raíz cuadrada (Newton-Raphson) ────────────
-def sqrt(x):
-    if x == 0:
+# ── Raíz cuadrada ─────────────────────────────
+def sqrt(xsqrt):
+    if xsqrt == 0:
         return 0
-    estimado = x / 2
-    i = 0
-    while i < 50:
-        estimado = (estimado + x / estimado) / 2
-        i += 1
-    return estimado
+    estsqrt = xsqrt / 2
+    isqrt   = 0
+    while isqrt < 50:
+        estsqrt = (estsqrt + xsqrt / estsqrt) / 2
+        isqrt  += 1
+    return estsqrt
 
-# ── Exponencial e^x (Serie de Taylor) ─────────
-def exp(x):
-    resultado = 0
-    n         = 0
-    while n < 50:
-        resultado = resultado + (x ** n) / factorial(n)
-        n += 1
-    return resultado
+# ── Exponencial ───────────────────────────────
+def exp(xexp):
+    resexp = 0
+    nexp   = 0
+    while nexp < 50:
+        resexp = resexp + (xexp ** nexp) / factorial(nexp)
+        nexp  += 1
+    return resexp
 
-# ── Logaritmo natural ln(x) ───────────────────
-def log(x):
-    # Reducción de rango: ln(x) = ln(x / e^k) + k
-    k = 0
-    while x > 2:
-        x = x / E
-        k += 1
-    while x < 0.5:
-        x = x * E
-        k -= 1
-    # Serie: ln(x) = 2 * arctanh((x-1)/(x+1))
-    y         = (x - 1) / (x + 1)
-    y2        = y * y
-    resultado = 0
-    termino   = y
-    n         = 0
-    while n < 1000:
-        resultado = resultado + termino / (2 * n + 1)
-        termino   = termino * y2
-        n += 1
-    return 2 * resultado + k
+# ── Logaritmo natural ─────────────────────────
+def log(xlog):
+    klog = 0
+    while xlog > 2:
+        xlog  = xlog / E
+        klog += 1
+    while xlog < 0.5:
+        xlog  = xlog * E
+        klog -= 1
+    ylog    = (xlog - 1) / (xlog + 1)
+    y2log   = ylog * ylog
+    reslog  = 0
+    termlog = ylog
+    nlog    = 0
+    while nlog < 1000:
+        reslog  = reslog + termlog / (2 * nlog + 1)
+        termlog = termlog * y2log
+        nlog   += 1
+    return 2 * reslog + klog
 
 # ── Logaritmo base 2 ──────────────────────────
-def log2(x):
-    return log(x) / log(2)
+def log2(xlog2):
+    return log(xlog2) / log(2)
 
 # ── Logaritmo base 10 ─────────────────────────
-def log10(x):
-    return log(x) / log(10)
+def log10(xlog10):
+    return log(xlog10) / log(10)
 
 # ── Logaritmo base arbitraria ─────────────────
-def logb(x, base):
-    return log(x) / log(base)
+def logb(xlogb, baselogb):
+    return log(xlogb) / log(baselogb)
+
+# ─────────────────────────────────────────────
+#  OPERACIONES DE MATRICES
+# ─────────────────────────────────────────────
+
+def mat_filas(mf):
+    nf = 0
+    for filaelem in mf:
+        nf += 1
+    return nf
+
+def mat_cols(mc):
+    nc = 0
+    for colelem in mc[0]:
+        nc += 1
+    return nc
+
+def mat_ceros(mczfilas, mczcols):
+    mczres = []
+    mczi   = 0
+    while mczi < mczfilas:
+        mczfila = []
+        mczj    = 0
+        while mczj < mczcols:
+            mczfila = mczfila + [0]
+            mczj   += 1
+        mczres = mczres + [mczfila]
+        mczi  += 1
+    return mczres
+
+def mat_identidad(nid):
+    mires = mat_ceros(nid, nid)
+    mii   = 0
+    while mii < nid:
+        mires[mii][mii] = 1
+        mii += 1
+    return mires
+
+def mat_suma(masa, masb):
+    masfilas = mat_filas(masa)
+    mascols  = mat_cols(masa)
+    masres   = mat_ceros(masfilas, mascols)
+    masi     = 0
+    while masi < masfilas:
+        masj = 0
+        while masj < mascols:
+            masres[masi][masj] = masa[masi][masj] + masb[masi][masj]
+            masj += 1
+        masi += 1
+    return masres
+
+def mat_resta(mresta, mrestb):
+    mresfilas = mat_filas(mresta)
+    mrescols  = mat_cols(mresta)
+    mresres   = mat_ceros(mresfilas, mrescols)
+    mresi     = 0
+    while mresi < mresfilas:
+        mresj = 0
+        while mresj < mrescols:
+            mresres[mresi][mresj] = mresta[mresi][mresj] - mrestb[mresi][mresj]
+            mresj += 1
+        mresi += 1
+    return mresres
+
+def mat_mul(mmula, mmulb):
+    mmulfa = mat_filas(mmula)
+    mmulca = mat_cols(mmula)
+    mmulcb = mat_cols(mmulb)
+    mmulres = mat_ceros(mmulfa, mmulcb)
+    mmuli   = 0
+    while mmuli < mmulfa:
+        mmulj = 0
+        while mmulj < mmulcb:
+            mmulk = 0
+            while mmulk < mmulca:
+                mmulres[mmuli][mmulj] = mmulres[mmuli][mmulj] + mmula[mmuli][mmulk] * mmulb[mmulk][mmulj]
+                mmulk += 1
+            mmulj += 1
+        mmuli += 1
+    return mmulres
+
+def mat_transpuesta(mtr):
+    mtrfilas = mat_filas(mtr)
+    mtrcols  = mat_cols(mtr)
+    mtrres   = mat_ceros(mtrcols, mtrfilas)
+    mtri     = 0
+    while mtri < mtrfilas:
+        mtrj = 0
+        while mtrj < mtrcols:
+            mtrres[mtrj][mtri] = mtr[mtri][mtrj]
+            mtrj += 1
+        mtri += 1
+    return mtrres
+
+def mat_inversa(minv):
+    ninv  = mat_filas(minv)
+    maug  = mat_ceros(ninv, 2 * ninv)
+    miden = mat_identidad(ninv)
+    minvi = 0
+    while minvi < ninv:
+        minvj = 0
+        while minvj < ninv:
+            maug[minvi][minvj]        = minv[minvi][minvj]
+            maug[minvi][minvj + ninv] = miden[minvi][minvj]
+            minvj += 1
+        minvi += 1
+    minvi = 0
+    while minvi < ninv:
+        mpiv = maug[minvi][minvi]
+        if mpiv == 0:
+            minvj2 = minvi + 1
+            while minvj2 < ninv:
+                if maug[minvj2][minvi] != 0:
+                    mtmp          = maug[minvi]
+                    maug[minvi]   = maug[minvj2]
+                    maug[minvj2]  = mtmp
+                    mpiv          = maug[minvi][minvi]
+                    minvj2        = ninv
+                minvj2 += 1
+        minvj = 0
+        while minvj < 2 * ninv:
+            maug[minvi][minvj] = maug[minvi][minvj] / mpiv
+            minvj += 1
+        minvk = 0
+        while minvk < ninv:
+            if minvk != minvi:
+                mfac = maug[minvk][minvi]
+                minvj = 0
+                while minvj < 2 * ninv:
+                    maug[minvk][minvj] = maug[minvk][minvj] - mfac * maug[minvi][minvj]
+                    minvj += 1
+            minvk += 1
+        minvi += 1
+    mires2 = mat_ceros(ninv, ninv)
+    minvi  = 0
+    while minvi < ninv:
+        minvj = 0
+        while minvj < ninv:
+            mires2[minvi][minvj] = maug[minvi][minvj + ninv]
+            minvj += 1
+        minvi += 1
+    return mires2
+
+def mat_print(mpr):
+    mprfilas = mat_filas(mpr)
+    mpri     = 0
+    while mpri < mprfilas:
+        print(mpr[mpri])
+        mpri += 1
+
+# ─────────────────────────────────────────────
+#  OPERACIONES VECTORIALES
+# ─────────────────────────────────────────────
+
+def vec_len(vlenv):
+    vlencnt = 0
+    for vlenelem in vlenv:
+        vlencnt += 1
+    return vlencnt
+
+def vec_suma(vsumv):
+    vsumtot = 0
+    for vsumelem in vsumv:
+        vsumtot += vsumelem
+    return vsumtot
+
+def vec_media(vmedv):
+    return vec_suma(vmedv) / vec_len(vmedv)
+
+def vec_dot(vdota, vdotb):
+    vdottot = 0
+    vdotn   = vec_len(vdota)
+    vdoti   = 0
+    while vdoti < vdotn:
+        vdottot += vdota[vdoti] * vdotb[vdoti]
+        vdoti   += 1
+    return vdottot
+
+# ─────────────────────────────────────────────
+#  REGRESION LINEAL
+# ─────────────────────────────────────────────
+
+def regresion_lineal(rlxs, rlys):
+    rln     = vec_len(rlxs)
+    rlsumx  = vec_suma(rlxs)
+    rlsumy  = vec_suma(rlys)
+    rlsumxx = 0
+    rlsumxy = 0
+    rlidx   = 0
+    while rlidx < rln:
+        rlsumxx += rlxs[rlidx] * rlxs[rlidx]
+        rlsumxy += rlxs[rlidx] * rlys[rlidx]
+        rlidx   += 1
+    rlm = (rln * rlsumxy - rlsumx * rlsumy) / (rln * rlsumxx - rlsumx * rlsumx)
+    rlb = (rlsumy - rlm * rlsumx) / rln
+    return [rlm, rlb]
+
+def rl_predecir(rlmod, rlxval):
+    rlm = rlmod[0]
+    rlb = rlmod[1]
+    return rlm * rlxval + rlb
+
+def rl_r2(rlr2xs, rlr2ys, rlr2mod):
+    rlr2n   = vec_len(rlr2xs)
+    rlr2med = vec_media(rlr2ys)
+    rlr2tot = 0
+    rlr2res = 0
+    rlr2idx = 0
+    while rlr2idx < rlr2n:
+        rlr2pred = rl_predecir(rlr2mod, rlr2xs[rlr2idx])
+        rlr2tot += (rlr2ys[rlr2idx] - rlr2med) ** 2
+        rlr2res += (rlr2ys[rlr2idx] - rlr2pred) ** 2
+        rlr2idx += 1
+    return 1 - rlr2res / rlr2tot
+
+# ─────────────────────────────────────────────
+#  REGRESION LOGISTICA
+# ─────────────────────────────────────────────
+
+def sigmoide(zsig):
+    return 1 / (1 + exp(zsig * -1))
+
+def regresion_logistica(rlogxs, rlogys, rlogtasa, rlogiter):
+    rlogw0  = 0
+    rlogw1  = 0
+    rlogn   = vec_len(rlogxs)
+    rlogit  = 0
+    while rlogit < rlogiter:
+        rlogg0  = 0
+        rlogg1  = 0
+        rlogidx = 0
+        while rlogidx < rlogn:
+            rlogpred  = sigmoide(rlogw0 + rlogw1 * rlogxs[rlogidx])
+            rlogerr   = rlogpred - rlogys[rlogidx]
+            rlogg0   += rlogerr
+            rlogg1   += rlogerr * rlogxs[rlogidx]
+            rlogidx  += 1
+        rlogw0  = rlogw0 - rlogtasa * rlogg0 / rlogn
+        rlogw1  = rlogw1 - rlogtasa * rlogg1 / rlogn
+        rlogit += 1
+    return [rlogw0, rlogw1]
+
+def rlog_predecir(rlogmod, rlogxval):
+    rlogw0   = rlogmod[0]
+    rlogw1   = rlogmod[1]
+    rlogprob = sigmoide(rlogw0 + rlogw1 * rlogxval)
+    if rlogprob >= 0.5:
+        return 1
+    return 0
+
+def rlog_probabilidad(rlogpmod, rlogpval):
+    rlogpw0 = rlogpmod[0]
+    rlogpw1 = rlogpmod[1]
+    return sigmoide(rlogpw0 + rlogpw1 * rlogpval)
+
+def rlog_precision(rlogprmod, rlogprxs, rlogprys):
+    rlogprn   = vec_len(rlogprxs)
+    rlogprok  = 0
+    rlogpridx = 0
+    while rlogpridx < rlogprn:
+        rlogprpred = rlog_predecir(rlogprmod, rlogprxs[rlogpridx])
+        if rlogprpred == rlogprys[rlogpridx]:
+            rlogprok += 1
+        rlogpridx += 1
+    return rlogprok / rlogprn

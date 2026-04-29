@@ -1,16 +1,5 @@
 grammar Hunter;
 
-// ─────────────────────────────────────────────
-//  Hunter Language Grammar
-//  Source files use the .hxh extension.
-//  ANTLR4 generates: HunterLexer, HunterParser,
-//  HunterVisitor and HunterListener from this file.
-// ─────────────────────────────────────────────
-
-// ─────────────────────────────────────────────
-//  PARSER RULES
-// ─────────────────────────────────────────────
-
 program
     : statement* EOF
     ;
@@ -29,11 +18,13 @@ statement
 
 // ── Assignments ──────────────────────────────
 assignStmt
-    : ID ASSIGN expr                        # SimpleAssign
-    | ID PLUS_ASSIGN  expr                  # PlusAssign
-    | ID MINUS_ASSIGN expr                  # MinusAssign
-    | ID STAR_ASSIGN  expr                  # StarAssign
-    | ID SLASH_ASSIGN expr                  # SlashAssign
+    : ID ASSIGN expr                                                         # SimpleAssign
+    | ID PLUS_ASSIGN  expr                                                   # PlusAssign
+    | ID MINUS_ASSIGN expr                                                   # MinusAssign
+    | ID STAR_ASSIGN  expr                                                   # StarAssign
+    | ID SLASH_ASSIGN expr                                                   # SlashAssign
+    | ID LBRACKET expr RBRACKET ASSIGN expr                                  # IndexAssign
+    | ID LBRACKET expr RBRACKET LBRACKET expr RBRACKET ASSIGN expr           # IndexAssign2D
     ;
 
 // ── Print ────────────────────────────────────
@@ -62,15 +53,10 @@ whileStmt
     ;
 
 // ── For ──────────────────────────────────────
+// ForIter acepta cualquier expresión después de IN,
+// incluyendo variables, listas literales y accesos a índice.
 forStmt
-    : FOR ID IN rangeExpr COLON NEWLINE block   # ForRange
-    | FOR ID IN ID        COLON NEWLINE block   # ForIter
-    ;
-
-rangeExpr
-    : RANGE LPAREN expr RPAREN                       # RangeOne
-    | RANGE LPAREN expr COMMA expr RPAREN            # RangeTwo
-    | RANGE LPAREN expr COMMA expr COMMA expr RPAREN # RangeThree
+    : FOR ID IN expr COLON NEWLINE block
     ;
 
 // ── Return ───────────────────────────────────
@@ -98,7 +84,7 @@ block
     ;
 
 // ─────────────────────────────────────────────
-//  EXPRESSIONS  (precedence climbing)
+//  EXPRESSIONS
 // ─────────────────────────────────────────────
 
 exprList
@@ -145,16 +131,20 @@ powerExpr
     ;
 
 primaryExpr
-    : INT_LIT                                   # IntLit
-    | FLOAT_LIT                                 # FloatLit
-    | STRING_LIT                                # StringLit
-    | BOOL_LIT                                  # BoolLit
-    | NONE_LIT                                  # NoneLit
-    | ID LPAREN exprList? RPAREN                # FuncCall
-    | ID LBRACKET expr RBRACKET                 # IndexAccess
-    | ID                                        # Identifier
-    | LPAREN expr RPAREN                        # Paren
-    | listLit                                   # ListExpr
+    : INT_LIT                                                       # IntLit
+    | FLOAT_LIT                                                     # FloatLit
+    | STRING_LIT                                                    # StringLit
+    | BOOL_LIT                                                      # BoolLit
+    | NONE_LIT                                                      # NoneLit
+    | RANGE LPAREN expr RPAREN                                      # RangeOne
+    | RANGE LPAREN expr COMMA expr RPAREN                           # RangeTwo
+    | RANGE LPAREN expr COMMA expr COMMA expr RPAREN                # RangeThree
+    | ID LPAREN exprList? RPAREN                                    # FuncCall
+    | ID LBRACKET expr RBRACKET LBRACKET expr RBRACKET              # IndexAccess2D
+    | ID LBRACKET expr RBRACKET                                     # IndexAccess
+    | ID                                                            # Identifier
+    | LPAREN expr RPAREN                                            # Paren
+    | listLit                                                       # ListExpr
     ;
 
 listLit
@@ -165,7 +155,6 @@ listLit
 //  LEXER RULES
 // ─────────────────────────────────────────────
 
-// ── Keywords ─────────────────────────────────
 IF          : 'if'    ;
 ELIF        : 'elif'  ;
 ELSE        : 'else'  ;
@@ -182,7 +171,6 @@ NOT         : 'not'   ;
 BOOL_LIT    : 'True' | 'False' ;
 NONE_LIT    : 'None'  ;
 
-// ── Operators ────────────────────────────────
 PLUS        : '+'  ;
 MINUS       : '-'  ;
 STAR        : '*'  ;
@@ -204,7 +192,6 @@ LE          : '<=' ;
 GT          : '>'  ;
 GE          : '>=' ;
 
-// ── Delimiters ───────────────────────────────
 LPAREN      : '('  ;
 RPAREN      : ')'  ;
 LBRACKET    : '['  ;
@@ -212,27 +199,17 @@ RBRACKET    : ']'  ;
 COMMA       : ','  ;
 COLON       : ':'  ;
 
-// ── Identifiers ──────────────────────────────
 ID          : [a-zA-Z_][a-zA-Z0-9_]* ;
 
-// ── Literals ─────────────────────────────────
 INT_LIT     : [0-9]+ ;
 FLOAT_LIT   : [0-9]+ '.' [0-9]* | '.' [0-9]+ ;
 STRING_LIT  : '"'  (~["\\\r\n] | '\\' .)*  '"'
             | '\'' (~['\\\r\n] | '\\' .)* '\''
             ;
 
-// ── Indentation handling ─────────────────────
-// Hunter uses significant indentation like Python.
-// INDENT and DEDENT are synthetic tokens emitted by a
-// custom lexer action (indent-stack approach).  The
-// placeholder literals below let ANTLR4 wire the token
-// types; at runtime they are produced by the overridden
-// nextToken() method and never matched literally.
-INDENT      : '<INDENT>'  ; // emitted by custom lexer action
-DEDENT      : '<DEDENT>'  ; // emitted by custom lexer action
+INDENT      : '<INDENT>'  ;
+DEDENT      : '<DEDENT>'  ;
 
-// ── Whitespace / Comments ────────────────────
 COMMENT     : '#' ~[\r\n]* -> skip ;
 WS          : [ \t]+       -> skip ;
 NEWLINE     : ('\r'? '\n' | '\r') ;

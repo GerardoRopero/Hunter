@@ -2,8 +2,7 @@
 HunterEvalVisitor.py
 ~~~~~~~~~~~~~~~~~~~~
 Visitor que recorre el árbol sintáctico de Hunter y ejecuta cada nodo
-directamente. Las funciones matemáticas están en stdlib.hxh, escrita
-en Hunter puro, y se cargan automáticamente al arrancar.
+directamente. Las funciones matemáticas están en stdlib.hxh.
 """
 
 import os
@@ -23,29 +22,26 @@ class HunterEvalVisitor(HunterVisitor):
 
     # ── Carga de la librería estándar ──────────────────────────────────────
     def _cargar_stdlib(self):
-        """
-        Carga stdlib.hxh antes de ejecutar cualquier programa.
-        La busca en el mismo directorio que este archivo.
-        """
         ruta = os.path.join(os.path.dirname(__file__), "stdlib.hxh")
-
         if not os.path.isfile(ruta):
-            raise FileNotFoundError(
-                f"No se encontró la librería estándar en: {ruta}"
-            )
-
+            raise FileNotFoundError(f"No se encontró stdlib.hxh en: {ruta}")
         with open(ruta, encoding="utf-8") as fh:
             source = fh.read()
-
-        # Importar aquí para evitar importación circular
         from IndentLexer import IndentLexer
-
         tokens = CommonTokenStream(IndentLexer(InputStream(source)))
         parser = HunterParser(tokens)
         tree   = parser.program()
-
-        # Ejecutar en el entorno global para que todo quede disponible
         self.visit(tree)
+        self._registrar_builtins_sistema()
+
+    def _registrar_builtins_sistema(self):
+        from Environment import (hunter_abrir, hunter_escribir,
+                                  hunter_agregar, hunter_existe, hunter_lineas)
+        self._env.set("abrir",    hunter_abrir)
+        self._env.set("escribir", hunter_escribir)
+        self._env.set("agregar",  hunter_agregar)
+        self._env.set("existe",   hunter_existe)
+        self._env.set("lineas",   hunter_lineas)
 
     # ── Utilidad de entorno ────────────────────────────────────────────────
     def _push(self):
@@ -94,6 +90,21 @@ class HunterEvalVisitor(HunterVisitor):
         value = self._env.get(name) / self.visit(ctx.expr())
         self._env.assign(name, value)
 
+    def visitIndexAssign(self, ctx: HunterParser.IndexAssignContext):
+        name  = ctx.ID().getText()
+        idx   = int(self.visit(ctx.expr(0)))
+        value = self.visit(ctx.expr(1))
+        lst   = self._env.get(name)
+        lst[idx] = value
+
+    def visitIndexAssign2D(self, ctx: HunterParser.IndexAssign2DContext):
+        name  = ctx.ID().getText()
+        fila  = int(self.visit(ctx.expr(0)))
+        col   = int(self.visit(ctx.expr(1)))
+        value = self.visit(ctx.expr(2))
+        lst   = self._env.get(name)
+        lst[fila][col] = value
+
     # ── Print ──────────────────────────────────────────────────────────────
     def visitPrintStmt(self, ctx: HunterParser.PrintStmtContext):
         args = []
@@ -117,20 +128,9 @@ class HunterEvalVisitor(HunterVisitor):
             self._exec_block(ctx.block())
 
     # ── For ────────────────────────────────────────────────────────────────
-    def visitForRange(self, ctx: HunterParser.ForRangeContext):
+    def visitForStmt(self, ctx: HunterParser.ForStmtContext):
         var      = ctx.ID().getText()
-        iterable = self.visit(ctx.rangeExpr())
-        for val in iterable:
-            self._push()
-            self._env.set(var, val)
-            try:
-                self._exec_block_raw(ctx.block())
-            finally:
-                self._pop()
-
-    def visitForIter(self, ctx: HunterParser.ForIterContext):
-        var      = ctx.ID(0).getText()
-        iterable = self._env.get(ctx.ID(1).getText())
+        iterable = self.visit(ctx.expr())
         for val in iterable:
             self._push()
             self._env.set(var, val)
@@ -289,6 +289,12 @@ class HunterEvalVisitor(HunterVisitor):
         lst = self._env.get(ctx.ID().getText())
         idx = int(self.visit(ctx.expr()))
         return lst[idx]
+
+    def visitIndexAccess2D(self, ctx: HunterParser.IndexAccess2DContext):
+        lst  = self._env.get(ctx.ID().getText())
+        fila = int(self.visit(ctx.expr(0)))
+        col  = int(self.visit(ctx.expr(1)))
+        return lst[fila][col]
 
     def visitListExpr(self, ctx: HunterParser.ListExprContext):
         return self.visit(ctx.listLit())

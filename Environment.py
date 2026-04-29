@@ -1,11 +1,75 @@
 """
 Environment.py
-~~~~~~~~~~~~~~
+
 Maneja los entornos (scopes) de variables y funciones del intérprete Hunter.
-Las funciones matemáticas ya no están aquí, están en stdlib.hxh
 escritas en Hunter puro.
 """
 
+# ─────────────────────────────────────────────
+#  MANEJO DE ARCHIVOS
+# ─────────────────────────────────────────────
+
+def hunter_abrir(ruta: str, modo: str = "r"):
+    """
+    Abre un archivo y devuelve su contenido.
+    modo "r" → lectura
+    modo "w" → escritura (borra el contenido anterior)
+    modo "a" → append (agrega al final)
+    """
+    try:
+        with open(ruta, mode=modo, encoding="utf-8") as fh:
+            if modo == "r":
+                return fh.read()
+            return None
+    except FileNotFoundError:
+        raise FileNotFoundError(f"Archivo no encontrado: '{ruta}'")
+    except Exception as exc:
+        raise RuntimeError(f"Error al abrir archivo: {exc}")
+
+
+def hunter_escribir(ruta: str, contenido: str):
+    """
+    Escribe contenido en un archivo.
+    Si el archivo no existe lo crea.
+    Si existe borra el contenido anterior.
+    """
+    try:
+        with open(ruta, mode="w", encoding="utf-8") as fh:
+            fh.write(str(contenido))
+    except Exception as exc:
+        raise RuntimeError(f"Error al escribir archivo: {exc}")
+
+
+def hunter_agregar(ruta: str, contenido: str):
+    """
+    Agrega contenido al final de un archivo sin borrar lo anterior.
+    Si el archivo no existe lo crea.
+    """
+    try:
+        with open(ruta, mode="a", encoding="utf-8") as fh:
+            fh.write(str(contenido))
+    except Exception as exc:
+        raise RuntimeError(f"Error al agregar al archivo: {exc}")
+
+
+def hunter_existe(ruta: str) -> bool:
+    """
+    Devuelve True si el archivo existe, False si no.
+    """
+    import os
+    return os.path.isfile(ruta)
+
+
+def hunter_lineas(ruta: str) -> list:
+    """
+    Lee un archivo y devuelve una lista donde cada
+    elemento es una línea del archivo.
+    """
+    try:
+        with open(ruta, encoding="utf-8") as fh:
+            return [linea.rstrip("\n") for linea in fh.readlines()]
+    except FileNotFoundError:
+        raise FileNotFoundError(f"Archivo no encontrado: '{ruta}'")
 
 class Environment:
     def __init__(self, parent=None):
