@@ -1,0 +1,75 @@
+# prueba_rna.hxh
+
+# ─────────────────────────────────────────────
+#  PERCEPTRON SIMPLE — puerta AND
+# ─────────────────────────────────────────────
+print("=== PERCEPTRON SIMPLE: AND ===")
+
+xs_and = [[0, 0], [0, 1], [1, 0], [1, 1]]
+ys_and = [0, 0, 0, 1]
+
+pesos_and = perc_entrenar(xs_and, ys_and, 0.1, 100)
+print("Pesos:", pesos_and)
+print("[0,0] ->", perc_predecir(pesos_and, [0, 0]), "esperado 0")
+print("[0,1] ->", perc_predecir(pesos_and, [0, 1]), "esperado 0")
+print("[1,0] ->", perc_predecir(pesos_and, [1, 0]), "esperado 0")
+print("[1,1] ->", perc_predecir(pesos_and, [1, 1]), "esperado 1")
+print("Precision:", perc_precision(pesos_and, xs_and, ys_and))
+
+# ─────────────────────────────────────────────
+#  PERCEPTRON SIMPLE — puerta OR
+# ─────────────────────────────────────────────
+print("=== PERCEPTRON SIMPLE: OR ===")
+
+xs_or = [[0, 0], [0, 1], [1, 0], [1, 1]]
+ys_or = [0, 1, 1, 1]
+
+pesos_or = perc_entrenar(xs_or, ys_or, 0.1, 100)
+print("[0,0] ->", perc_predecir(pesos_or, [0, 0]), "esperado 0")
+print("[0,1] ->", perc_predecir(pesos_or, [0, 1]), "esperado 1")
+print("[1,0] ->", perc_predecir(pesos_or, [1, 0]), "esperado 1")
+print("[1,1] ->", perc_predecir(pesos_or, [1, 1]), "esperado 1")
+print("Precision:", perc_precision(pesos_or, xs_or, ys_or))
+
+# ─────────────────────────────────────────────
+#  MLP — puerta XOR
+#  2 entradas, 4 neuronas ocultas
+# ─────────────────────────────────────────────
+print("=== MLP: XOR ===")
+
+xs_xor = [[0, 0], [0, 1], [1, 0], [1, 1]]
+ys_xor = [0, 1, 1, 0]
+
+ne_xor    = 2
+no_xor    = 4
+pesos_xor = mlp_entrenar(xs_xor, ys_xor, ne_xor, no_xor, 0.5, 200)
+
+print("[0,0] ->", mlp_predecir(pesos_xor, ne_xor, no_xor, [0, 0]), "prob:", mlp_probabilidad(pesos_xor, ne_xor, no_xor, [0, 0]), "esperado 0")
+print("[0,1] ->", mlp_predecir(pesos_xor, ne_xor, no_xor, [0, 1]), "prob:", mlp_probabilidad(pesos_xor, ne_xor, no_xor, [0, 1]), "esperado 1")
+print("[1,0] ->", mlp_predecir(pesos_xor, ne_xor, no_xor, [1, 0]), "prob:", mlp_probabilidad(pesos_xor, ne_xor, no_xor, [1, 0]), "esperado 1")
+print("[1,1] ->", mlp_predecir(pesos_xor, ne_xor, no_xor, [1, 1]), "prob:", mlp_probabilidad(pesos_xor, ne_xor, no_xor, [1, 1]), "esperado 0")
+print("Precision:", mlp_precision(pesos_xor, ne_xor, no_xor, xs_xor, ys_xor))
+
+# ─────────────────────────────────────────────
+#  MLP — Clasificacion binaria
+# ─────────────────────────────────────────────
+print("=== MLP: CLASIFICACION BINARIA ===")
+
+xs_cls = [[1, 20], [2, 25], [3, 30], [4, 35], [5, 40], [6, 45], [7, 50], [8, 55]]
+ys_cls = [0, 0, 0, 0, 1, 1, 1, 1]
+
+ne_cls    = 2
+no_cls    = 4
+pesos_cls = mlp_entrenar(xs_cls, ys_cls, ne_cls, no_cls, 0.1, 300)
+
+print("Precision:", mlp_precision(pesos_cls, ne_cls, no_cls, xs_cls, ys_cls))
+print("Prob [3,30]:", mlp_probabilidad(pesos_cls, ne_cls, no_cls, [3, 30]))
+print("Prob [7,50]:", mlp_probabilidad(pesos_cls, ne_cls, no_cls, [7, 50]))
+
+pred_cls = []
+clsidx   = 0
+while clsidx < 8:
+    pred_cls = pred_cls + [mlp_predecir(pesos_cls, ne_cls, no_cls, xs_cls[clsidx])]
+    clsidx  += 1
+
+met_reporte(ys_cls, pred_cls)

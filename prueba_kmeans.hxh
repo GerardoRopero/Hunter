@@ -1,0 +1,36 @@
+# prueba_kmeans.hxh
+
+# Grupo 1: esquina inferior izquierda
+datos = [[1, 1], [1, 2], [2, 1], [2, 2], [1.5, 1.5], [8, 8], [8, 9], [9, 8], [9, 9], [8.5, 8.5], [1, 8], [1, 9], [2, 8], [2, 9], [1.5, 8.5]]
+
+print("=== K-MEANS CON K=3 ===")
+resultado  = kmeans(datos, 3, 100)
+centroides = resultado[0]
+etiquetas  = resultado[1]
+
+print("Centroides encontrados:")
+km_print(centroides, datos, etiquetas)
+print("Inercia:", km_inercia(datos, etiquetas, centroides))
+print("Etiquetas:", etiquetas)
+
+# Extraer coordenadas para graficar
+xs   = []
+ys   = []
+didx = 0
+while didx < 15:
+    xs   = xs + [datos[didx][0]]
+    ys   = ys + [datos[didx][1]]
+    didx += 1
+
+grafica_puntos_guardar(xs, ys, "kmeans_datos.png", "Datos sin agrupar", "X", "Y")
+
+cxs  = []
+cys  = []
+cidx = 0
+while cidx < 3:
+    cxs  = cxs + [centroides[cidx][0]]
+    cys  = cys + [centroides[cidx][1]]
+    cidx += 1
+
+grafica_puntos_guardar(cxs, cys, "kmeans_centroides.png", "Centroides finales", "X", "Y")
+print("Graficas guardadas")

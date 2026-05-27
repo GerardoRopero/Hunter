@@ -1,0 +1,143 @@
+# prediccion_ventas.hxh
+# Predicción de ventas usando MLP (Red Neuronal)
+# con datos del archivo ventas.csv
+
+# ── Leer datos ────────────────────────────────
+datos     = leer_csv("ventas.csv")
+encabs    = csv_encabezados("ventas.csv")
+print("Columnas:", encabs)
+print("Filas cargadas:", vec_len(datos))
+
+# ── Extraer columnas ──────────────────────────
+meses     = csv_columna(datos, 0)
+ventas    = csv_columna(datos, 1)
+gastos    = csv_columna(datos, 2)
+ganancias = csv_columna(datos, 3)
+
+# ── Normalizar todo a [0, 1] ──────────────────
+mes_min  = norm_min(meses)
+mes_max  = norm_max(meses)
+ven_min  = norm_min(ventas)
+ven_max  = norm_max(ventas)
+gas_min  = norm_min(gastos)
+gas_max  = norm_max(gastos)
+gan_min  = norm_min(ganancias)
+gan_max  = norm_max(ganancias)
+
+meses_n   = norm_escalar(meses)
+ventas_n  = norm_escalar(ventas)
+gastos_n  = norm_escalar(gastos)
+ganancias_n = norm_escalar(ganancias)
+
+print("=== DATOS NORMALIZADOS ===")
+print("Ventas normalizadas:", ventas_n)
+
+# ─────────────────────────────────────────────
+#  TAREA 1: Predecir si las ventas son ALTAS
+#  Definimos "altas" como ventas >= 25000
+#  Entradas: [mes_norm, gastos_norm]
+#  Salida: 0 (bajas) o 1 (altas)
+# ─────────────────────────────────────────────
+print("=== TAREA 1: CLASIFICAR VENTAS ALTAS/BAJAS ===")
+
+xs_cls = []
+ys_cls = []
+cidx   = 0
+while cidx < 12:
+    xs_cls = xs_cls + [[meses_n[cidx], gastos_n[cidx]]]
+    if ventas[cidx] >= 25000:
+        ys_cls = ys_cls + [1]
+    else:
+        ys_cls = ys_cls + [0]
+    cidx += 1
+
+print("Etiquetas (1=alta, 0=baja):", ys_cls)
+
+ne_cls    = 2
+no_cls    = 6
+pesos_cls = mlp_entrenar(xs_cls, ys_cls, ne_cls, no_cls, 0.5, 500)
+
+print("Precision en entrenamiento:", mlp_precision(pesos_cls, ne_cls, no_cls, xs_cls, ys_cls))
+
+pred_cls = []
+pcidx    = 0
+while pcidx < 12:
+    pred_cls = pred_cls + [mlp_predecir(pesos_cls, ne_cls, no_cls, xs_cls[pcidx])]
+    pcidx   += 1
+
+print("Predicciones:", pred_cls)
+print("Reales:      ", ys_cls)
+met_reporte(ys_cls, pred_cls)
+
+# ─────────────────────────────────────────────
+#  TAREA 2: Predecir ganancias (regresión)
+#  Entradas: [mes_norm, ventas_norm, gastos_norm]
+#  Salida: ganancia_norm (entre 0 y 1)
+#  Usamos el MLP como regresor
+# ─────────────────────────────────────────────
+print("=== TAREA 2: PREDECIR GANANCIAS CON MLP ===")
+
+xs_reg = []
+ridx   = 0
+while ridx < 12:
+    xs_reg = xs_reg + [[meses_n[ridx], ventas_n[ridx], gastos_n[ridx]]]
+    ridx  += 1
+
+ne_reg    = 3
+no_reg    = 8
+pesos_reg = mlp_entrenar(xs_reg, ganancias_n, ne_reg, no_reg, 0.3, 500)
+
+print("Mes | Ganancia Real | Ganancia Predicha | Error")
+regidx = 0
+while regidx < 12:
+    prob      = mlp_probabilidad(pesos_reg, ne_reg, no_reg, xs_reg[regidx])
+    gan_pred  = norm_desnormalizar(prob, gan_min, gan_max)
+    gan_real  = ganancias[regidx]
+    error     = gan_real - gan_pred
+    if error < 0:
+        error = error * -1
+    print(meses[regidx], "|", gan_real, "|", gan_pred, "|", error)
+    regidx += 1
+
+# ─────────────────────────────────────────────
+#  PREDICCIONES PARA MESES FUTUROS
+#  Mes 13 y 14 (fuera del rango de entrenamiento)
+# ─────────────────────────────────────────────
+print("=== PREDICCIONES MESES FUTUROS ===")
+
+mes13_n   = norm_valor(13, mes_min, mes_max)
+mes14_n   = norm_valor(14, mes_min, mes_max)
+
+# Estimamos gastos para mes 13 y 14 siguiendo la tendencia
+gas13_n   = norm_valor(18000, gas_min, gas_max)
+gas14_n   = norm_valor(19000, gas_min, gas_max)
+ven13_n   = norm_valor(43000, ven_min, ven_max)
+ven14_n   = norm_valor(46000, ven_min, ven_max)
+
+# Clasificacion
+print("Mes 13 ventas altas?", mlp_predecir(pesos_cls, ne_cls, no_cls, [mes13_n, gas13_n]))
+print("Mes 14 ventas altas?", mlp_predecir(pesos_cls, ne_cls, no_cls, [mes14_n, gas14_n]))
+
+# Ganancia predicha
+prob13   = mlp_probabilidad(pesos_reg, ne_reg, no_reg, [mes13_n, ven13_n, gas13_n])
+prob14   = mlp_probabilidad(pesos_reg, ne_reg, no_reg, [mes14_n, ven14_n, gas14_n])
+gan13    = norm_desnormalizar(prob13, gan_min, gan_max)
+gan14    = norm_desnormalizar(prob14, gan_min, gan_max)
+
+print("Ganancia predicha mes 13:", gan13)
+print("Ganancia predicha mes 14:", gan14)
+
+# ─────────────────────────────────────────────
+#  GRAFICAS
+# ─────────────────────────────────────────────
+ganancias_pred = []
+gpidx          = 0
+while gpidx < 12:
+    prob     = mlp_probabilidad(pesos_reg, ne_reg, no_reg, xs_reg[gpidx])
+    gan_pred = norm_desnormalizar(prob, gan_min, gan_max)
+    ganancias_pred = ganancias_pred + [gan_pred]
+    gpidx   += 1
+
+grafica_dos_lineas_guardar(meses, ganancias, ganancias_pred, "Real", "MLP", "mlp_ganancias.png", "Ganancias: Real vs MLP", "Mes", "Ganancia")
+grafica_guardar(meses, ventas, "mlp_ventas.png", "Ventas por mes", "Mes", "Ventas")
+print("Graficas guardadas: mlp_ganancias.png, mlp_ventas.png")

@@ -326,23 +326,62 @@ def rl_r2(rlr2xs, rlr2ys, rlr2mod):
     return 1 - rlr2res / rlr2tot
 
 # ─────────────────────────────────────────────
+# ─────────────────────────────────────────────
 #  REGRESION LOGISTICA
 # ─────────────────────────────────────────────
 
+# ─────────────────────────────────────────────
+#  REGRESION LOGISTICA
+#  Usa aproximación eficiente de la sigmoide
+#  con solo 15 términos para ser rápida
+# ─────────────────────────────────────────────
+
 def sigmoide(zsig):
-    return 1 / (1 + exp(zsig * -1))
+    # Usamos solo 15 términos de exp para velocidad
+    zsigx   = zsig * -1
+    zsigres = 0
+    zsigk   = 0
+    zsigpot = 1
+    zsigfac = 1
+    while zsigk < 15:
+        if zsigk == 0:
+            zsigpot = 1
+            zsigfac = 1
+        else:
+            zsigpot = zsigpot * zsigx
+            zsigfac = zsigfac * zsigk
+        zsigres = zsigres + zsigpot / zsigfac
+        zsigk  += 1
+    return 1 / (1 + zsigres)
 
 def regresion_logistica(rlogxs, rlogys, rlogtasa, rlogiter):
     rlogw0  = 0
     rlogw1  = 0
-    rlogn   = vec_len(rlogxs)
+    rlogn   = 0
+    for rlogce in rlogxs:
+        rlogn += 1
     rlogit  = 0
     while rlogit < rlogiter:
         rlogg0  = 0
         rlogg1  = 0
         rlogidx = 0
         while rlogidx < rlogn:
-            rlogpred  = sigmoide(rlogw0 + rlogw1 * rlogxs[rlogidx])
+            rlogz    = rlogw0 + rlogw1 * rlogxs[rlogidx]
+            rlogzx   = rlogz * -1
+            rlogers  = 0
+            rlogek   = 0
+            rlogepot = 1
+            rlogefac = 1
+            while rlogek < 15:
+                if rlogek == 0:
+                    rlogepot = 1
+                    rlogefac = 1
+                else:
+                    rlogepot = rlogepot * rlogzx
+                    rlogefac = rlogefac * rlogek
+                rlogers  = rlogers + rlogepot / rlogefac
+                rlogek  += 1
+            rlogpred  = 1 / (1 + rlogers)
             rlogerr   = rlogpred - rlogys[rlogidx]
             rlogg0   += rlogerr
             rlogg1   += rlogerr * rlogxs[rlogidx]
@@ -355,18 +394,50 @@ def regresion_logistica(rlogxs, rlogys, rlogtasa, rlogiter):
 def rlog_predecir(rlogmod, rlogxval):
     rlogw0   = rlogmod[0]
     rlogw1   = rlogmod[1]
-    rlogprob = sigmoide(rlogw0 + rlogw1 * rlogxval)
+    rlogz    = rlogw0 + rlogw1 * rlogxval
+    rlogzx   = rlogz * -1
+    rlogers  = 0
+    rlogek   = 0
+    rlogepot = 1
+    rlogefac = 1
+    while rlogek < 15:
+        if rlogek == 0:
+            rlogepot = 1
+            rlogefac = 1
+        else:
+            rlogepot = rlogepot * rlogzx
+            rlogefac = rlogefac * rlogek
+        rlogers  = rlogers + rlogepot / rlogefac
+        rlogek  += 1
+    rlogprob = 1 / (1 + rlogers)
     if rlogprob >= 0.5:
         return 1
     return 0
 
 def rlog_probabilidad(rlogpmod, rlogpval):
-    rlogpw0 = rlogpmod[0]
-    rlogpw1 = rlogpmod[1]
-    return sigmoide(rlogpw0 + rlogpw1 * rlogpval)
+    rlogpw0  = rlogpmod[0]
+    rlogpw1  = rlogpmod[1]
+    rlogpz   = rlogpw0 + rlogpw1 * rlogpval
+    rlogpzx  = rlogpz * -1
+    rlogpers = 0
+    rlogpek  = 0
+    rlogppot = 1
+    rlogpfac = 1
+    while rlogpek < 15:
+        if rlogpek == 0:
+            rlogppot = 1
+            rlogpfac = 1
+        else:
+            rlogppot = rlogppot * rlogpzx
+            rlogpfac = rlogpfac * rlogpek
+        rlogpers = rlogpers + rlogppot / rlogpfac
+        rlogpek += 1
+    return 1 / (1 + rlogpers)
 
 def rlog_precision(rlogprmod, rlogprxs, rlogprys):
-    rlogprn   = vec_len(rlogprxs)
+    rlogprn   = 0
+    for rlogpce in rlogprxs:
+        rlogprn += 1
     rlogprok  = 0
     rlogpridx = 0
     while rlogpridx < rlogprn:
@@ -375,3 +446,723 @@ def rlog_precision(rlogprmod, rlogprxs, rlogprys):
             rlogprok += 1
         rlogpridx += 1
     return rlogprok / rlogprn
+
+#  METRICAS DE CLASIFICACION
+# ─────────────────────────────────────────────
+
+def met_contar_n(mcnlista):
+    mcncnt = 0
+    for mcnelem in mcnlista:
+        mcncnt += 1
+    return mcncnt
+
+def met_tp(mtpyr, mtpyp):
+    mtpcnt = 0
+    mtpn   = met_contar_n(mtpyr)
+    mtpidx = 0
+    while mtpidx < mtpn:
+        if mtpyp[mtpidx] == 1 and mtpyr[mtpidx] == 1:
+            mtpcnt += 1
+        mtpidx += 1
+    return mtpcnt
+
+def met_tn(mtnyr, mtnyp):
+    mtncnt = 0
+    mtnn   = met_contar_n(mtnyr)
+    mtnidx = 0
+    while mtnidx < mtnn:
+        if mtnyp[mtnidx] == 0 and mtnyr[mtnidx] == 0:
+            mtncnt += 1
+        mtnidx += 1
+    return mtncnt
+
+def met_fp(mfpyr, mfpyp):
+    mfpcnt = 0
+    mfpn   = met_contar_n(mfpyr)
+    mfpidx = 0
+    while mfpidx < mfpn:
+        if mfpyp[mfpidx] == 1 and mfpyr[mfpidx] == 0:
+            mfpcnt += 1
+        mfpidx += 1
+    return mfpcnt
+
+def met_fn(mfnyr, mfnyp):
+    mfncnt = 0
+    mfnn   = met_contar_n(mfnyr)
+    mfnidx = 0
+    while mfnidx < mfnn:
+        if mfnyp[mfnidx] == 0 and mfnyr[mfnidx] == 1:
+            mfncnt += 1
+        mfnidx += 1
+    return mfncnt
+
+def met_accuracy(macyr, macyp):
+    mactp = met_tp(macyr, macyp)
+    mactn = met_tn(macyr, macyp)
+    macn  = met_contar_n(macyr)
+    return (mactp + mactn) / macn
+
+def met_precision(mpryr, mpryp):
+    mprtpv = met_tp(mpryr, mpryp)
+    mprfp = met_fp(mpryr, mpryp)
+    if mprtpv + mprfp == 0:
+        return 0
+    return mprtpv / (mprtpv + mprfp)
+
+def met_recall(mreyr, mreyp):
+    mretp = met_tp(mreyr, mreyp)
+    mrefn = met_fn(mreyr, mreyp)
+    if mretp + mrefn == 0:
+        return 0
+    return mretp / (mretp + mrefn)
+
+def met_f1(mf1yr, mf1yp):
+    mf1prec = met_precision(mf1yr, mf1yp)
+    mf1rec  = met_recall(mf1yr, mf1yp)
+    if mf1prec + mf1rec == 0:
+        return 0
+    return 2 * (mf1prec * mf1rec) / (mf1prec + mf1rec)
+
+def met_matriz_confusion(mmcyr, mmcyp):
+    mmctp = met_tp(mmcyr, mmcyp)
+    mmctn = met_tn(mmcyr, mmcyp)
+    mmcfp = met_fp(mmcyr, mmcyp)
+    mmcfn = met_fn(mmcyr, mmcyp)
+    return [[mmctn, mmcfp], [mmcfn, mmctp]]
+
+def met_print_confusion(mpcyr, mpcyp):
+    mpcmc = met_matriz_confusion(mpcyr, mpcyp)
+    print("Matriz de confusion:")
+    print("           Pred 0   Pred 1")
+    print("Real 0  [", mpcmc[0][0], ",", mpcmc[0][1], "]")
+    print("Real 1  [", mpcmc[1][0], ",", mpcmc[1][1], "]")
+
+def met_reporte(mryr, mryp):
+    print("=== REPORTE DE METRICAS ===")
+    print("Accuracy : ", met_accuracy(mryr, mryp))
+    print("Precision: ", met_precision(mryr, mryp))
+    print("Recall   : ", met_recall(mryr, mryp))
+    print("F1 Score : ", met_f1(mryr, mryp))
+    met_print_confusion(mryr, mryp)
+
+# ─────────────────────────────────────────────
+#  OPTIMIZADORES
+#
+#  Algoritmos para minimizar una función de
+#  costo ajustando parámetros iterativamente.
+#
+#  Todos trabajan con un modelo lineal:
+#  f(x) = w0 + w1*x
+#  y minimizan el error cuadrático medio (MSE)
+# ─────────────────────────────────────────────
+
+# ── Error Cuadrático Medio (MSE) ──────────────
+# MSE = (1/n) * sum((y_pred - y_real)^2)
+def opt_mse(optxs, optys, optw0, optw1):
+    optn   = 0
+    for optce in optxs:
+        optn += 1
+    optsum = 0
+    optidx = 0
+    while optidx < optn:
+        optpred = optw0 + optw1 * optxs[optidx]
+        opterr  = optpred - optys[optidx]
+        optsum += opterr * opterr
+        optidx += 1
+    return optsum / optn
+
+# ── Gradiente Descendente Estándar ────────────
+# Actualiza w0 y w1 usando todos los datos
+# en cada iteración (batch gradient descent)
+def gd_estandar(gdxs, gdys, gdtasa, gditer):
+    gdw0 = 0
+    gdw1 = 0
+    gdn  = 0
+    for gdce in gdxs:
+        gdn += 1
+    gdit = 0
+    while gdit < gditer:
+        gdg0  = 0
+        gdg1  = 0
+        gdidx = 0
+        while gdidx < gdn:
+            gdpred = gdw0 + gdw1 * gdxs[gdidx]
+            gderr  = gdpred - gdys[gdidx]
+            gdg0  += gderr
+            gdg1  += gderr * gdxs[gdidx]
+            gdidx += 1
+        gdw0 = gdw0 - gdtasa * gdg0 / gdn
+        gdw1 = gdw1 - gdtasa * gdg1 / gdn
+        gdit += 1
+    return [gdw0, gdw1]
+
+# ── Gradiente Descendente con Momentum ────────
+# Acelera la convergencia acumulando velocidad
+# en la dirección del gradiente
+# v = momentum * v - tasa * gradiente
+# w = w + v
+def gd_momentum(gdmxs, gdmys, gdmtasa, gdmiter, gdmmom):
+    gdmw0  = 0
+    gdmw1  = 0
+    gdmv0  = 0
+    gdmv1  = 0
+    gdmn   = 0
+    for gdmce in gdmxs:
+        gdmn += 1
+    gdmit = 0
+    while gdmit < gdmiter:
+        gdmg0  = 0
+        gdmg1  = 0
+        gdmidx = 0
+        while gdmidx < gdmn:
+            gdmpred = gdmw0 + gdmw1 * gdmxs[gdmidx]
+            gdmerr  = gdmpred - gdmys[gdmidx]
+            gdmg0  += gdmerr
+            gdmg1  += gdmerr * gdmxs[gdmidx]
+            gdmidx += 1
+        gdmv0  = gdmmom * gdmv0 - gdmtasa * gdmg0 / gdmn
+        gdmv1  = gdmmom * gdmv1 - gdmtasa * gdmg1 / gdmn
+        gdmw0  = gdmw0 + gdmv0
+        gdmw1  = gdmw1 + gdmv1
+        gdmit += 1
+    return [gdmw0, gdmw1]
+
+# ── Gradiente Descendente Estocástico (SGD) ───
+# Actualiza los pesos con un solo dato a la vez
+# Más ruidoso pero converge más rápido
+def gd_estocastico(gdexs, gdeys, gdetasa, gdeiter):
+    gdew0 = 0
+    gdew1 = 0
+    gden  = 0
+    for gdece in gdexs:
+        gden += 1
+    gdeit = 0
+    while gdeit < gdeiter:
+        gdeidx = 0
+        while gdeidx < gden:
+            gdepred = gdew0 + gdew1 * gdexs[gdeidx]
+            gdeerr  = gdepred - gdeys[gdeidx]
+            gdew0   = gdew0 - gdetasa * gdeerr
+            gdew1   = gdew1 - gdetasa * gdeerr * gdexs[gdeidx]
+            gdeidx += 1
+        gdeit += 1
+    return [gdew0, gdew1]
+
+# ── Predecir con modelo lineal ────────────────
+def opt_predecir(optmod, optxval):
+    return optmod[0] + optmod[1] * optxval
+
+# ── Historial de pérdida ──────────────────────
+# Devuelve lista con el MSE cada N iteraciones
+def gd_historial(gdhxs, gdhys, gdhtasa, gdhiter, gdhcada):
+    gdhw0   = 0
+    gdhw1   = 0
+    gdhn    = 0
+    for gdhce in gdhxs:
+        gdhn += 1
+    gdhhist = []
+    gdhit   = 0
+    while gdhit < gdhiter:
+        gdhg0  = 0
+        gdhg1  = 0
+        gdhidx = 0
+        while gdhidx < gdhn:
+            gdhpred = gdhw0 + gdhw1 * gdhxs[gdhidx]
+            gdherr  = gdhpred - gdhys[gdhidx]
+            gdhg0  += gdherr
+            gdhg1  += gdherr * gdhxs[gdhidx]
+            gdhidx += 1
+        gdhw0 = gdhw0 - gdhtasa * gdhg0 / gdhn
+        gdhw1 = gdhw1 - gdhtasa * gdhg1 / gdhn
+        if gdhit % gdhcada == 0:
+            gdhmse  = opt_mse(gdhxs, gdhys, gdhw0, gdhw1)
+            gdhhist = gdhhist + [gdhmse]
+        gdhit += 1
+    return gdhhist
+
+# ─────────────────────────────────────────────
+#  K-MEANS (Agrupamiento)
+#
+#  Divide los datos en K grupos encontrando
+#  los centroides que minimizan la distancia
+#  interna de cada grupo.
+#
+#  Los datos son listas de pares [x, y].
+#  Ejemplo: datos = [[1,2], [3,4], [5,6]]
+# ─────────────────────────────────────────────
+
+# ── Distancia euclidiana entre dos puntos ─────
+def km_distancia(kmdp, kmdq):
+    kmdx = kmdp[0] - kmdq[0]
+    kmdy = kmdp[1] - kmdq[1]
+    return sqrt(kmdx * kmdx + kmdy * kmdy)
+
+# ── Encontrar el centroide más cercano ────────
+def km_centroide_cercano(kmccp, kmccentros):
+    kmccn      = 0
+    for kmcce in kmccentros:
+        kmccn += 1
+    kmccmin    = km_distancia(kmccp, kmccentros[0])
+    kmccidx    = 0
+    kmcccercano = 0
+    while kmccidx < kmccn:
+        kmccdist = km_distancia(kmccp, kmccentros[kmccidx])
+        if kmccdist < kmccmin:
+            kmccmin     = kmccdist
+            kmcccercano = kmccidx
+        kmccidx += 1
+    return kmcccercano
+
+# ── Asignar cada punto a su centroide ─────────
+def km_asignar(kmasdatos, kmascentros):
+    kmasn      = 0
+    for kmasce in kmasdatos:
+        kmasn += 1
+    kmasetiquetas = []
+    kmasidx       = 0
+    while kmasidx < kmasn:
+        kmasetiqueta  = km_centroide_cercano(kmasdatos[kmasidx], kmascentros)
+        kmasetiquetas = kmasetiquetas + [kmasetiqueta]
+        kmasidx      += 1
+    return kmasetiquetas
+
+# ── Recalcular centroides ─────────────────────
+def km_recalcular(kmrdatos, kmretiquetas, kmrk):
+    kmrn        = 0
+    for kmrce in kmrdatos:
+        kmrn += 1
+    kmrnuevos   = []
+    kmrki       = 0
+    while kmrki < kmrk:
+        kmrsumx = 0
+        kmrsumy = 0
+        kmrcnt  = 0
+        kmridx  = 0
+        while kmridx < kmrn:
+            if kmretiquetas[kmridx] == kmrki:
+                kmrsumx += kmrdatos[kmridx][0]
+                kmrsumy += kmrdatos[kmridx][1]
+                kmrcnt  += 1
+            kmridx += 1
+        if kmrcnt == 0:
+            kmrnuevos = kmrnuevos + [kmrdatos[kmrki]]
+        else:
+            kmrnuevos = kmrnuevos + [[kmrsumx / kmrcnt, kmrsumy / kmrcnt]]
+        kmrki += 1
+    return kmrnuevos
+
+# ── Verificar convergencia ────────────────────
+def km_convergio(kmcva, kmcvb, kmcvk):
+    kmcvidx = 0
+    while kmcvidx < kmcvk:
+        kmcvdist = km_distancia(kmcva[kmcvidx], kmcvb[kmcvidx])
+        if kmcvdist > 0.0001:
+            return False
+        kmcvidx += 1
+    return True
+
+# ── Algoritmo K-Means completo ────────────────
+# Recibe:
+#   datos     — lista de puntos [[x,y], [x,y]...]
+#   k         — número de grupos
+#   iteraciones — máximo de iteraciones
+# Devuelve:
+#   [centroides, etiquetas]
+#   centroides — lista de k puntos centrales
+#   etiquetas  — lista con el grupo de cada punto
+def kmeans(kmdatos, kmk, kmiter):
+    # Inicializar centroides con los primeros k puntos
+    kmcentros = []
+    kminiti   = 0
+    while kminiti < kmk:
+        kmcentros = kmcentros + [kmdatos[kminiti]]
+        kminiti  += 1
+
+    kmetiquetas = []
+    kmit        = 0
+    while kmit < kmiter:
+        # Asignar puntos a centroides
+        kmetiquetas  = km_asignar(kmdatos, kmcentros)
+        # Recalcular centroides
+        kmnuevos     = km_recalcular(kmdatos, kmetiquetas, kmk)
+        # Verificar convergencia
+        if km_convergio(kmcentros, kmnuevos, kmk):
+            kmcentros = kmnuevos
+            kmit      = kmiter
+        else:
+            kmcentros = kmnuevos
+        kmit += 1
+    return [kmcentros, kmetiquetas]
+
+# ── Inercia (calidad del agrupamiento) ────────
+# Suma de distancias al cuadrado de cada punto
+# a su centroide. Menor inercia = mejor modelo.
+def km_inercia(kmidatos, kmietiquetas, kmicentros):
+    kmin   = 0
+    for kmice in kmidatos:
+        kmin += 1
+    kmisum = 0
+    kmiidx = 0
+    while kmiidx < kmin:
+        kmidist  = km_distancia(kmidatos[kmiidx], kmicentros[kmietiquetas[kmiidx]])
+        kmisum  += kmidist * kmidist
+        kmiidx  += 1
+    return kmisum
+
+# ── Imprimir resultados ───────────────────────
+def km_print(kmpcentros, kmpdatos, kmpetiqs):
+    kmpk   = 0
+    for kmpce in kmpcentros:
+        kmpk += 1
+    kmpki  = 0
+    while kmpki < kmpk:
+        kmpcnt = 0
+        kmpidx = 0
+        kmpn   = 0
+        for kmpce2 in kmpdatos:
+            kmpn += 1
+        while kmpidx < kmpn:
+            if kmpetiqs[kmpidx] == kmpki:
+                kmpcnt += 1
+            kmpidx += 1
+        print("Grupo", kmpki, ": centroide =", kmpcentros[kmpki], "| puntos =", kmpcnt)
+        kmpki += 1
+
+# ─────────────────────────────────────────────
+#  DEEP LEARNING — REDES NEURONALES
+#
+#  Implementación desde cero en Hunter puro.
+#  Incluye:
+#    - Funciones de activación
+#    - Perceptrón simple
+#    - Perceptrón multicapa (MLP)
+# ─────────────────────────────────────────────
+
+# ─────────────────────────────────────────────
+#  FUNCIONES DE ACTIVACIÓN
+# ─────────────────────────────────────────────
+
+# Sigmoide: salida entre 0 y 1
+def act_sigmoide(actsz):
+    actszx   = actsz * -1
+    actszres = 0
+    actszk   = 0
+    actszpot = 1
+    actszfac = 1
+    while actszk < 15:
+        if actszk == 0:
+            actszpot = 1
+            actszfac = 1
+        else:
+            actszpot = actszpot * actszx
+            actszfac = actszfac * actszk
+        actszres = actszres + actszpot / actszfac
+        actszk  += 1
+    return 1 / (1 + actszres)
+
+# Derivada de sigmoide: s * (1 - s)
+def act_sigmoide_deriv(actsdz):
+    actsds = act_sigmoide(actsdz)
+    return actsds * (1 - actsds)
+
+# ReLU: max(0, x)
+def act_relu(actrz):
+    if actrz > 0:
+        return actrz
+    return 0
+
+# Derivada de ReLU
+def act_relu_deriv(actrdz):
+    if actrdz > 0:
+        return 1
+    return 0
+
+# Tanh: (e^x - e^-x) / (e^x + e^-x)
+def act_tanh(acttz):
+    acttep = 0
+    acttek = 0
+    attpot = 1
+    attfac = 1
+    while acttek < 20:
+        if acttek == 0:
+            attpot = 1
+            attfac = 1
+        else:
+            attpot = attpot * acttz
+            attfac = attfac * acttek
+        acttep = acttep + attpot / attfac
+        acttek += 1
+    acttem = 0
+    attek2 = 0
+    attpot2 = 1
+    attfac2 = 1
+    actzm   = acttz * -1
+    while attek2 < 20:
+        if attek2 == 0:
+            attpot2 = 1
+            attfac2 = 1
+        else:
+            attpot2 = attpot2 * actzm
+            attfac2 = attfac2 * attek2
+        acttem = acttem + attpot2 / attfac2
+        attek2 += 1
+    if acttep + acttem == 0:
+        return 0
+    return (acttep - acttem) / (acttep + acttem)
+
+# Derivada de tanh: 1 - tanh²(x)
+def act_tanh_deriv(acttdz):
+    acttdt = act_tanh(acttdz)
+    return 1 - acttdt * acttdt
+
+# ─────────────────────────────────────────────
+#  PERCEPTRÓN SIMPLE
+#
+#  Una sola neurona con n entradas.
+#  Aprende con la regla del perceptrón:
+#  w = w + tasa * (y_real - y_pred) * x
+#
+#  Los pesos se representan como una lista:
+#  [w0, w1, w2, ...] donde w0 es el sesgo
+# ─────────────────────────────────────────────
+
+# Inicializar pesos en cero
+def perc_crear(percn):
+    percpesos = []
+    percidx   = 0
+    while percidx <= percn:
+        percpesos = percpesos + [0]
+        percidx  += 1
+    return percpesos
+
+# Predicción del perceptrón (escalón)
+def perc_predecir(percppesos, percpx):
+    percpn   = 0
+    for percpce in percpx:
+        percpn += 1
+    percpsum = percppesos[0]
+    percpidx = 0
+    while percpidx < percpn:
+        percpsum += percppesos[percpidx + 1] * percpx[percpidx]
+        percpidx += 1
+    if percpsum >= 0:
+        return 1
+    return 0
+
+# Entrenamiento del perceptrón
+def perc_entrenar(percexs, perceys, percetasa, perceiter):
+    percen = 0
+    for percece in percexs[0]:
+        percen += 1
+    percepesos = perc_crear(percen)
+    perceit    = 0
+    percedatos = 0
+    for percede in percexs:
+        percedatos += 1
+    while perceit < perceiter:
+        perceidx = 0
+        while perceidx < percedatos:
+            percepred = perc_predecir(percepesos, percexs[perceidx])
+            perceerr  = perceys[perceidx] - percepred
+            percepesos[0] = percepesos[0] + percetasa * perceerr
+            percejdx  = 0
+            while percejdx < percen:
+                percepesos[percejdx + 1] = percepesos[percejdx + 1] + percetasa * perceerr * percexs[perceidx][percejdx]
+                percejdx += 1
+            perceidx += 1
+        perceit += 1
+    return percepesos
+
+# Precisión del perceptrón
+def perc_precision(percprpesos, percprxs, percprys):
+    percprn   = 0
+    for percprce in percprxs:
+        percprn += 1
+    percprok  = 0
+    percpridx = 0
+    while percpridx < percprn:
+        percprpred = perc_predecir(percprpesos, percprxs[percpridx])
+        if percprpred == percprys[percpridx]:
+            percprok += 1
+        percpridx += 1
+    return percprok / percprn
+
+# ─────────────────────────────────────────────
+#  PERCEPTRÓN MULTICAPA (MLP)
+#
+#  Arquitectura: entrada → capa oculta → salida
+#  Una capa oculta con activación sigmoide.
+#  Salida con sigmoide (clasificación binaria).
+#
+#  Representación de pesos:
+#  mlp_pesos = [W1, b1, W2, b2]
+#  W1: matriz (n_oculta x n_entrada)
+#  b1: vector (n_oculta)
+#  W2: vector (n_salida x n_oculta)
+#  b2: escalar
+# ─────────────────────────────────────────────
+
+# Inicializar pesos pequeños
+# ─────────────────────────────────────────────
+#  PERCEPTRÓN MULTICAPA (MLP)
+#
+#  Arquitectura: entrada → capa oculta → salida
+#  Una capa oculta con activación sigmoide.
+#
+#  Los pesos W1 se almacenan como lista plana
+#  de longitud n_oculta * n_entrada para evitar
+#  accesos de tres niveles que Hunter no soporta.
+#  Para acceder W1[i][j] se usa W1[i*ne + j]
+# ─────────────────────────────────────────────
+
+def mlp_crear(mlpcne, mlpcno):
+    # W1 plano: n_oculta * n_entrada elementos
+    mlpcw1  = []
+    mlpcw1i = 0
+    while mlpcw1i < mlpcno * mlpcne:
+        mlpcw1  = mlpcw1 + [0]
+        mlpcw1i += 1
+    # b1: sesgo por neurona oculta
+    mlpcb1  = []
+    mlpcb1i = 0
+    while mlpcb1i < mlpcno:
+        mlpcb1  = mlpcb1 + [0]
+        mlpcb1i += 1
+    # W2: pesos capa salida
+    mlpcw2  = []
+    mlpcw2i = 0
+    while mlpcw2i < mlpcno:
+        mlpcw2  = mlpcw2 + [0]
+        mlpcw2i += 1
+    # b2: sesgo salida
+    mlpcb2 = 0
+    return [mlpcw1, mlpcb1, mlpcw2, mlpcb2]
+
+def mlp_forward(mlpfw, mlpfne, mlpfno, mlpfx):
+    mlpfw1 = mlpfw[0]
+    mlpfb1 = mlpfw[1]
+    mlpfw2 = mlpfw[2]
+    mlpfb2 = mlpfw[3]
+    # Capa oculta
+    mlpfa1  = []
+    mlpfhi  = 0
+    while mlpfhi < mlpfno:
+        mlpfsum = mlpfb1[mlpfhi]
+        mlpfji  = 0
+        while mlpfji < mlpfne:
+            mlpfsum = mlpfsum + mlpfw1[mlpfhi * mlpfne + mlpfji] * mlpfx[mlpfji]
+            mlpfji += 1
+        mlpfa1 = mlpfa1 + [act_sigmoide(mlpfsum)]
+        mlpfhi += 1
+    # Capa salida
+    mlpfsum2 = mlpfb2
+    mlpfhi2  = 0
+    while mlpfhi2 < mlpfno:
+        mlpfsum2 = mlpfsum2 + mlpfw2[mlpfhi2] * mlpfa1[mlpfhi2]
+        mlpfhi2 += 1
+    mlpfa2 = act_sigmoide(mlpfsum2)
+    return [mlpfa1, mlpfa2]
+
+def mlp_entrenar(mlpexs, mlpeys, mlpene, mlpeno, mlpetasa, mlpeiter):
+    mlpew = mlp_crear(mlpene, mlpeno)
+    mlpen = 0
+    for mlpece in mlpexs:
+        mlpen += 1
+    mlpeit = 0
+    while mlpeit < mlpeiter:
+        mlpeidx = 0
+        while mlpeidx < mlpen:
+            mlpex   = mlpexs[mlpeidx]
+            mlpey   = mlpeys[mlpeidx]
+            # Forward
+            mlpefwd = mlp_forward(mlpew, mlpene, mlpeno, mlpex)
+            mlpea1  = mlpefwd[0]
+            mlpea2  = mlpefwd[1]
+            # Delta salida
+            mlped2  = (mlpea2 - mlpey) * mlpea2 * (1 - mlpea2)
+            # Actualizar W2 y b2
+            mlpehi  = 0
+            while mlpehi < mlpeno:
+                mlpew[2][mlpehi] = mlpew[2][mlpehi] - mlpetasa * mlped2 * mlpea1[mlpehi]
+                mlpehi += 1
+            mlpew[3] = mlpew[3] - mlpetasa * mlped2
+            # Backprop capa oculta
+            mlpehi2 = 0
+            while mlpehi2 < mlpeno:
+                mlped1  = mlped2 * mlpew[2][mlpehi2] * mlpea1[mlpehi2] * (1 - mlpea1[mlpehi2])
+                mlpeji  = 0
+                while mlpeji < mlpene:
+                    mlpwidx = mlpehi2 * mlpene + mlpeji
+                    mlpew[0][mlpwidx] = mlpew[0][mlpwidx] - mlpetasa * mlped1 * mlpex[mlpeji]
+                    mlpeji += 1
+                mlpew[1][mlpehi2] = mlpew[1][mlpehi2] - mlpetasa * mlped1
+                mlpehi2 += 1
+            mlpeidx += 1
+        mlpeit += 1
+    return mlpew
+
+def mlp_predecir(mlppw, mlppne, mlppno, mlppx):
+    mlppfwd = mlp_forward(mlppw, mlppne, mlppno, mlppx)
+    mlppa2  = mlppfwd[1]
+    if mlppa2 >= 0.5:
+        return 1
+    return 0
+
+def mlp_probabilidad(mlpprw, mlpprne, mlpprno, mlpprx):
+    mlpprfwd = mlp_forward(mlpprw, mlpprne, mlpprno, mlpprx)
+    return mlpprfwd[1]
+
+def mlp_precision(mlpacw, mlpacne, mlpacno, mlpacxs, mlpacys):
+    mlpacn   = 0
+    for mlpacce in mlpacxs:
+        mlpacn += 1
+    mlpacok  = 0
+    mlpacidx = 0
+    while mlpacidx < mlpacn:
+        mlpacpred = mlp_predecir(mlpacw, mlpacne, mlpacno, mlpacxs[mlpacidx])
+        if mlpacpred == mlpacys[mlpacidx]:
+            mlpacok += 1
+        mlpacidx += 1
+    return mlpacok / mlpacn
+
+# ─────────────────────────────────────────────
+#  NORMALIZACIÓN
+#  Escala los datos al rango [0, 1]
+#  usando Min-Max normalization:
+#  x_norm = (x - min) / (max - min)
+# ─────────────────────────────────────────────
+
+def norm_min(nmlista):
+    nmmin = nmlista[0]
+    for nmelem in nmlista:
+        if nmelem < nmmin:
+            nmmin = nmelem
+    return nmmin
+
+def norm_max(nmlista):
+    nmmax = nmlista[0]
+    for nmelem in nmlista:
+        if nmelem > nmmax:
+            nmmax = nmelem
+    return nmmax
+
+def norm_escalar(nmlista):
+    nmmin  = norm_min(nmlista)
+    nmmax  = norm_max(nmlista)
+    nmrng  = nmmax - nmmin
+    nmres  = []
+    for nmelem in nmlista:
+        if nmrng == 0:
+            nmres = nmres + [0]
+        else:
+            nmres = nmres + [(nmelem - nmmin) / nmrng]
+    return nmres
+
+def norm_valor(nmval, nmmin, nmmax):
+    nmrng = nmmax - nmmin
+    if nmrng == 0:
+        return 0
+    return (nmval - nmmin) / nmrng
+
+def norm_desnormalizar(nmval, nmmin, nmmax):
+    return nmval * (nmmax - nmmin) + nmmin

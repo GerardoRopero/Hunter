@@ -1,0 +1,37 @@
+# prueba_metricas.hxh
+
+# Caso 1: clasificador perfecto
+print("=== CASO 1: CLASIFICADOR PERFECTO ===")
+yr_perf = [1, 0, 1, 1, 0, 0, 1, 0]
+yp_perf = [1, 0, 1, 1, 0, 0, 1, 0]
+met_reporte(yr_perf, yp_perf)
+
+# Caso 2: clasificador con errores
+print("=== CASO 2: CLASIFICADOR CON ERRORES ===")
+yr_err = [1, 0, 1, 1, 0, 0, 1, 0, 1, 1]
+yp_err = [1, 0, 0, 1, 1, 0, 1, 0, 0, 1]
+met_reporte(yr_err, yp_err)
+
+# Caso 3: regresion logistica con pocas iteraciones
+print("=== CASO 3: REGRESION LOGISTICA ===")
+x_train = [1, 2, 3, 4, 5, 6, 7, 8]
+y_train = [0, 0, 0, 0, 1, 1, 1, 1]
+
+# 100 iteraciones es suficiente y mucho mas rapido
+modelo = regresion_logistica(x_train, y_train, 0.1, 100)
+
+predichos = []
+pidx = 0
+while pidx < 8:
+    predichos = predichos + [rlog_predecir(modelo, x_train[pidx])]
+    pidx += 1
+
+print("Reales:   ", y_train)
+print("Predichos:", predichos)
+met_reporte(y_train, predichos)
+
+print("Metricas individuales:")
+print("TP:", met_tp(y_train, predichos))
+print("TN:", met_tn(y_train, predichos))
+print("FP:", met_fp(y_train, predichos))
+print("FN:", met_fn(y_train, predichos))
