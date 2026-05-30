@@ -1,0 +1,67 @@
+# ==========================================
+# encoder.hxh
+# ==========================================
+
+def to_float(valor):
+    return valor + 0
+
+
+def encode_sex(valor):
+
+    if valor == "M":
+        return 0
+
+    return 1
+
+
+def encode_bp(valor):
+
+    if valor == "LOW":
+        return 0
+
+    if valor == "NORMAL":
+        return 1
+
+    return 2
+
+
+def encode_chol(valor):
+
+    if valor == "NORMAL":
+        return 0
+
+    return 1
+
+
+def encode_drug(valor):
+
+    if valor == "DrugY":
+        return 1
+
+    return 0
+
+
+def convertir_fila(fila):
+
+    edad = to_float(fila[0])
+
+    sexo = encode_sex(fila[1])
+
+    presion = encode_bp(fila[2])
+
+    colesterol = encode_chol(fila[3])
+
+    na_to_k = to_float(fila[4])
+
+    droga = encode_drug(fila[5])
+
+    datos = []
+
+    datos = datos + [edad]
+    datos = datos + [sexo]
+    datos = datos + [presion]
+    datos = datos + [colesterol]
+    datos = datos + [na_to_k]
+    datos = datos + [droga]
+
+    return datos
