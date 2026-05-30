@@ -1,0 +1,57 @@
+# ==========================================
+# prediccion_drug.hxh
+# ==========================================
+
+import encoder
+
+
+raw = leer_csv("drug200.csv")
+
+xs = []
+ys = []
+
+idx = 1
+
+while idx < 200:
+
+    fila = convertir_fila(raw[idx])
+
+    x = fila[4]
+
+    y = fila[5]
+
+    xs = xs + [x]
+
+    ys = ys + [y]
+
+    idx += 1
+
+
+modelo = regresion_logistica(xs, ys, 0.01, 100)
+
+precision = rlog_precision(modelo, xs, ys)
+
+print("Precision")
+print(precision)
+
+
+paciente1 = 25
+
+pred1 = rlog_predecir(modelo, paciente1)
+
+prob1 = rlog_probabilidad(modelo, paciente1)
+
+print("Paciente 1")
+print(pred1)
+print(prob1)
+
+
+paciente2 = 10
+
+pred2 = rlog_predecir(modelo, paciente2)
+
+prob2 = rlog_probabilidad(modelo, paciente2)
+
+print("Paciente 2")
+print(pred2)
+print(prob2)
